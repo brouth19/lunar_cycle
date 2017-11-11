@@ -1,0 +1,51 @@
+---
+title: "Data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(twitteR)
+library(ROAuth)
+library(devtools)
+library(httr)
+```
+
+```{r}
+# Download "cacert.pem" file
+download.file(url="http://curl.haxx.se/ca/cacert.pem",destfile="cacert.pem")
+
+#create an object "cred" that will save the authenticated object that we can use for later sessions
+ cred <- OAuthFactory$new(consumerKey='xa1wWUs5shIvAcot57r7xhQZE',
+      consumerSecret='AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw',
+      requestURL='https://api.twitter.com/oauth/request_token',
+      accessURL='https://api.twitter.com/oauth/access_token',
+      authURL='https://api.twitter.com/oauth/authorize')
+ 	# Executing the next step generates an output --> To enable the connection, please direct your web browser to: <hyperlink> . Note:  You only need to do this part once
+
+  cred$handshake(cainfo="cacert.pem")
+
+   save(cred, file="twitter authentication.Rdata")
+   
+   load("twitter authentication.Rdata")
+   
+  consumer_key<-"xa1wWUs5shIvAcot57r7xhQZE"
+  consumer_secret<-"AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw"
+  access_token<-"805657646-4fqd7p414MUdX5Cg01wcqEToqmtmdsPM37ieg8gX"
+  access_secret<-"6nxHYM2GTCtaLG9whtTKsdqexqellVBmtneZC7X5POPEP"
+
+
+  setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
+   
+  search.string <- "#cantsleep"
+  no.of.tweets <- 100
+
+  tweets <- searchTwitter(search.string, n=no.of.tweets, lang="en")
+  head(tweets)
+
+
+   
+
+```
+
