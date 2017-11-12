@@ -11,6 +11,10 @@ library(ROAuth)
 library(devtools)
 library(httr)
 library(jsonlite)
+library(readr)
+library(RDS)
+library(lubridate)
+library(magrittr)
 ```
 
 ```{r}
@@ -39,27 +43,63 @@ download.file(url="http://curl.haxx.se/ca/cacert.pem",destfile="cacert.pem")
 
   setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
    
-  search.string <- "#insomnia"
-  no.of.tweets <- 3000
-
-  insomnia_tweets <- searchTwitter(search.string, n=no.of.tweets, lang="en")
-  head(insomnia_tweets)
+  no.of.tweets <- 10000
   
-  insomnia_tweets_df <- tbl_df(map_df(tweets, as.data.frame))
+    twitter_function<-function(hashtag) {
+    
+  tweets_w_hashtag <- searchTwitter(hashtag, 
+                                   n=no.of.tweets, 
+                                   lang="en", 
+                                   since=as.char(Sys.Date()-7),
+                                   until=as.char(Sys.Date()))
+  
+  hashtag_df <- tbl_df(map_df(tweets_w_hashtag, as.data.frame))
+ 
+    hashtag_df%>%mutate(week=week(Sys.Date()))%>%
+                        group_by(week)%>%
+                        summarise(count=n())
+    return(hashtag_df)
+  }
+insomnia_tweets<-twitter_function('#insomnia')
+cantsleep_tweets<-twitter_function('#cantsleep')
+wideawake_tweets<-twitter_function('#wideawake')
+nosleep_tweets<-twitter_function('#nosleep')
 
-
-   
+master_table<-insomnia_tweets%>%full_join(cantsleep_tweets,by='week')%>%
+                  full_join(wideawake_tweets,by='week')%>%
+                  full_join(nosleep_tweets, by='week')%>%
+                  mutate(insomnia_count = count.x, cantsleep_count = count.y, wideawake_count = count.x.x, nosleep_count = count.y.y)%>%
+                  summarise(week,totalcount=insomnia_count+cantsleep_count+wideawake_count+nosleep_count)
+master_table
 
 ```
+
+
+
+
 ```{r}
 lunar_stats <- function(file_json){
     
     lunar_data<-fromJSON(file_json)
-    lunar_data_frame<-lunar_data$results
+    lunar_data_frame<-as.data.frame(lunar_data)
+    
    
-  
+  return(lunar_data_frame)
 }
 
-lunar_stats('http://api.usno.navy.mil/moon/phase?date=DATE&nump=NUMP')
+lunar_statistics<-lunar_stats('http://api.usno.navy.mil/moon/phase?year=2017')
+lunar_statistics = lunar_statistics %>% select(date=phasedata.date,
+                          phase=phasedata.phase,
+                          time=phasedata.time)%>%
+                     mutate(Date=as.Date((date),"%Y %b %d"), week = as.numeric(week(Date)))%>%
+                     select(phase,Date,time,week)
+
+
+```
+```{r}
+
+master_table%>%full_join(lunar_statistics, by = 'week')%>%
+               group_by(phase)%>%
+               summarise(total_tweet_count = sum(totalcount,na.rm = TRUE), average_tweet_count = total_tweet_count/13)
 ```
 
