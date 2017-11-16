@@ -19,19 +19,19 @@ library(magrittr)
 
 ```{r}
 # Download "cacert.pem" file
-download.file(url="http://curl.haxx.se/ca/cacert.pem",destfile="cacert.pem")
+#download.file(url="http://curl.haxx.se/ca/cacert.pem",destfile="cacert.pem")
 
 #create an object "cred" that will save the authenticated object that we can use for later sessions
- cred <- OAuthFactory$new(consumerKey='xa1wWUs5shIvAcot57r7xhQZE',
-      consumerSecret='AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw',
-      requestURL='https://api.twitter.com/oauth/request_token',
-      accessURL='https://api.twitter.com/oauth/access_token',
-      authURL='https://api.twitter.com/oauth/authorize')
- 	# Executing the next step generates an output --> To enable the connection, please direct your web browser to: <hyperlink> . Note:  You only need to do this part once
+# cred <- OAuthFactory$new(consumerKey='xa1wWUs5shIvAcot57r7xhQZE',
+#      consumerSecret='AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw',
+#      requestURL='https://api.twitter.com/oauth/request_token',
+#      accessURL='https://api.twitter.com/oauth/access_token',
+#     authURL='https://api.twitter.com/oauth/authorize')
+# Executing the next step generates an output --> To enable the connection, please direct your web browser to: <hyperlink> . Note:  You only need to do this part once
 
-  cred$handshake(cainfo="cacert.pem")
+ # cred$handshake(cainfo="cacert.pem")
 
-   save(cred, file="twitter authentication.Rdata")
+ #  save(cred, file="twitter authentication.Rdata")
    
    load("twitter authentication.Rdata")
    
@@ -55,7 +55,7 @@ download.file(url="http://curl.haxx.se/ca/cacert.pem",destfile="cacert.pem")
   
   hashtag_df <- tbl_df(map_df(tweets_w_hashtag, as.data.frame))
  
-    hashtag_df%>%mutate(week=week(Sys.Date()))%>%
+  hashtag_df<-hashtag_df%>%mutate(week=week(Sys.Date()))%>%
                         group_by(week)%>%
                         summarise(count=n())
     return(hashtag_df)
@@ -71,6 +71,22 @@ master_table<-insomnia_tweets%>%full_join(cantsleep_tweets,by='week')%>%
                   mutate(insomnia_count = count.x, cantsleep_count = count.y, wideawake_count = count.x.x, nosleep_count = count.y.y)%>%
                   summarise(week,totalcount=insomnia_count+cantsleep_count+wideawake_count+nosleep_count)
 master_table
+
+```
+```{r}
+three_am_function<-function(hashtag) {
+    
+  tweets_w_hashtag <- searchTwitter(hashtag,
+                                   n=100, 
+                                   lang="en", 
+                                   since=as.char(Sys.Date()-7),
+                                   until=as.char(Sys.Date()))
+  
+  hashtag_df <- tbl_df(map_df(tweets_w_hashtag, as.data.frame))
+ 
+    return(hashtag_df)
+  }
+test_tweets<-three_am_function(' ')
 
 ```
 
@@ -97,6 +113,13 @@ lunar_statistics = lunar_statistics %>% select(date=phasedata.date,
 
 ```
 ```{r}
+master_table<-insomnia_tweets%>%full_join(cantsleep_tweets,by='week')%>%
+                  full_join(wideawake_tweets,by='week')%>%
+                  full_join(nosleep_tweets, by='week')%>%
+                  mutate(insomnia_count = count.x, cantsleep_count = count.y, wideawake_count = count.x.x, nosleep_count = count.y.y)%>%
+                  summarise(week,totalcount=insomnia_count+cantsleep_count+wideawake_count+nosleep_count)
+master_table
+
 
 master_table%>%full_join(lunar_statistics, by = 'week')%>%
                group_by(phase)%>%
