@@ -74,22 +74,22 @@ master_table
 
 ```
 ```{r}
-three_am_function<-function(all_tweets) {
+three_am_function<-function(all) {
     
-  all_Tweets <- searchTwitter(all_tweets,
-                                   n=100, 
+  all_tweets <- searchTwitter(all,
+                                   n=5000, 
                                    lang="en", 
                                    since=as.char(Sys.Date()-7),
                                    until=as.char(Sys.Date()))
   
-  three_am_tweets <- tbl_df(map_df(All_tweets, as.data.frame))
-  three_am_tweets<-three_am_tweets
-
- 
+  three_am_tweets <- tbl_df(map_df(all_tweets, as.data.frame))
+  
     return(three_am_tweets)
   }
 test_tweets<-three_am_function(' ')
-
+test_tweets<-test_tweets%>%
+             mutate(time=format(created,format='%H:%M:%S'))
+#there are no tweets in the early AM hours: only those leading up to midnight
 ```
 
 
