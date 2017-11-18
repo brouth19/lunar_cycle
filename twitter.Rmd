@@ -15,6 +15,7 @@ library(readr)
 library(RDS)
 library(lubridate)
 library(magrittr)
+library(rtweet)
 ```
 
 ```{r}
@@ -42,7 +43,10 @@ library(magrittr)
 
 
   setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
-   
+```
+
+
+```{r}
   no.of.tweets <- 10000
   
     twitter_function<-function(hashtag) {
@@ -71,28 +75,38 @@ master_table<-insomnia_tweets%>%full_join(cantsleep_tweets,by='week')%>%
                   mutate(insomnia_count = count.x, cantsleep_count = count.y, wideawake_count = count.x.x, nosleep_count = count.y.y)%>%
                   summarise(week,totalcount=insomnia_count+cantsleep_count+wideawake_count+nosleep_count)
 master_table
-
 ```
+
 ```{r}
-three_am_function<-function(all) {
+#three_am_function<-function(all) {
     
-  all_tweets <- searchTwitter(all,
-                                   n=5000, 
-                                   lang="en", 
-                                   since=as.char(Sys.Date()-7),
-                                   until=as.char(Sys.Date()))
+  #all_tweets <- searchTwitter(all,
+                                  # n=5000, 
+                                   #lang="en", 
+                                   #since=as.char(Sys.Date()-7),
+                                   #until=as.char(Sys.Date()))
   
-  three_am_tweets <- tbl_df(map_df(all_tweets, as.data.frame))
+ # three_am_tweets <- tbl_df(map_df(all_tweets, as.data.frame))
   
-    return(three_am_tweets)
-  }
-test_tweets<-three_am_function(' ')
-test_tweets<-test_tweets%>%
-             mutate(time=format(created,format='%H:%M:%S'))
+   # return(three_am_tweets)
+ # }
+#test_tweets<-three_am_function(' ')
+#test_tweets<-test_tweets%>%
+             #mutate(time=format(created,format='%H:%M:%S'))
 #there are no tweets in the early AM hours: only those leading up to midnight
 ```
 
+```{r}
+#one minute of tweets in the eastern time zone
+eastern_time_zone <- stream_tweets(
+  c(-82.5, 25, -70, 47),
+  timeout = 60)
 
+three_am_tweets <- eastern_time_zone %>%
+                        mutate(week=week(Sys.Date()))%>%
+                        group_by(week)%>%
+                        summarise(late_night_count=n(), week)
+```
 
 
 ```{r}
@@ -111,20 +125,16 @@ lunar_statistics = lunar_statistics %>% select(date=phasedata.date,
                           time=phasedata.time)%>%
                      mutate(Date=as.Date((date),"%Y %b %d"), week = as.numeric(week(Date)))%>%
                      select(phase,Date,time,week)
-
-
 ```
+
+
+
 ```{r}
-master_table<-insomnia_tweets%>%full_join(cantsleep_tweets,by='week')%>%
-                  full_join(wideawake_tweets,by='week')%>%
-                  full_join(nosleep_tweets, by='week')%>%
-                  mutate(insomnia_count = count.x, cantsleep_count = count.y, wideawake_count = count.x.x, nosleep_count = count.y.y)%>%
-                  summarise(week,totalcount=insomnia_count+cantsleep_count+wideawake_count+nosleep_count)
-master_table
 
-
+#added three am tweets to the master table
 master_table%>%full_join(lunar_statistics, by = 'week')%>%
+               full_join(three_am_tweets, by = 'week')%>%
                group_by(phase)%>%
-               summarise(total_tweet_count = sum(totalcount,na.rm = TRUE), average_tweet_count = total_tweet_count/13)
+               summarise(total_hashtag_tweet_count = sum(totalcount,na.rm = TRUE), average_hashtag_tweet_count = total_tweet_count/13, num_late_night_tweets = sum(late_night_count))
 ```
 
