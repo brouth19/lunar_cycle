@@ -16,6 +16,7 @@ library(RDS)
 library(lubridate)
 library(magrittr)
 library(rtweet)
+library(httpuv)
 ```
 
 ```{r}
@@ -97,15 +98,21 @@ master_table
 ```
 
 ```{r}
+
+twitter_tokens <- create_token(app = "my_app",
+    consumer_key = "xa1wWUs5shIvAcot57r7xhQZE", 
+    consumer_secret = "AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw")
+
+
 #one minute of tweets in the eastern time zone
 eastern_time_zone <- stream_tweets(
   c(-82.5, 25, -70, 47),
   timeout = 60)
 
-three_am_tweets <- eastern_time_zone %>%
+three_am_tweets <- eastern_time_zone%>%
                         mutate(week=week(Sys.Date()))%>%
                         group_by(week)%>%
-                        summarise(late_night_count=n(), week)
+                        summarise(late_night_count=n())
 ```
 
 
