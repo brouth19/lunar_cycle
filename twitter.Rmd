@@ -109,10 +109,25 @@ eastern_time_zone <- stream_tweets(
   c(-82.5, 25, -70, 47),
   timeout = 60)
 
-three_am_tweets <- eastern_time_zone%>%
+#effectively updating the total table to not be rewritten each time the script is run
+#Date below has to change to whatever the first date is we plan to automate the script
+if(Sys.Date() == "2017-11-19"){
+  three_am_total <- eastern_time_zone%>%
                         mutate(week=week(Sys.Date()))%>%
-                        group_by(week)%>%
                         summarise(late_night_count=n())
+} else{
+  three_am_one_day <- eastern_time_zone%>%
+                        mutate(week=week(Sys.Date()))%>%
+                        summarise(late_night_count=n())
+  
+  three_am_total <- rbind(three_am_total, three_am_one_day) %>%
+                      group_by(week)
+}
+
+#three_am_tweets <- eastern_time_zone%>%
+#                        mutate(week=week(Sys.Date()))%>%
+#                        group_by(week)%>%
+#                        summarise(late_night_count=n())
 ```
 
 
@@ -140,8 +155,8 @@ lunar_statistics = lunar_statistics %>% select(date=phasedata.date,
 
 #added three am tweets to the master table
 master_table%>%full_join(lunar_statistics, by = 'week')%>%
-               full_join(three_am_tweets, by = 'week')%>%
+               full_join(three_am_total, by = 'week')%>%
                group_by(phase)%>%
-               summarise(total_hashtag_tweet_count = sum(totalcount,na.rm = TRUE), average_hashtag_tweet_count = total_tweet_count/13, num_late_night_tweets = sum(late_night_count))
+               summarise(total_hashtag_tweet_count = sum(totalcount,na.rm = TRUE), num_late_night_tweets = sum(late_night_count))
 ```
 
