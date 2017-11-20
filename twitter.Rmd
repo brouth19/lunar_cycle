@@ -48,11 +48,9 @@ library(httpuv)
 
 
 ```{r}
-  
 
 no.of.tweets <- 10000
   
-
   twitter_function<-function(hashtag) {
     
   tweets_w_hashtag <- searchTwitter(hashtag, 
@@ -63,50 +61,39 @@ no.of.tweets <- 10000
   
   hashtag_df <- tbl_df(map_df(tweets_w_hashtag, as.data.frame))
   hashtag_df%>%    mutate(week=week(Sys.Date()))%>%
-                        summarise(hashtag_count=n())
+                        summarise(count=n())
 
     return(hashtag_df)
     }
     
 if(Sys.Date() == "2017-11-19"){
-  twitter_function('#insomnia')
   insomnia_tweets <- twitter_function('#insomnia')
+  cantsleep_tweets<-twitter_function('#cantsleep')
+  wideawake_tweets<-twitter_function('#wideawake')
+  nosleep_tweets<-twitter_function('#nosleep')
 } else{
-  hashtag_one_day <- twitter_function('#insomnia')
+  insomnia_one_day <- twitter_function('#insomnia')
+  cantsleep_one_day <- twitter_function('#cantsleep')
+  wideawake_one_day <- twitter_function('#wideawake')
+  nosleep_one_day <- twitter_function('#nosleep')
   
-  insomnia_tweets<- rbind(insomnia_tweets, hashtag_one_day) %>%
+  insomnia_tweets<- rbind(insomnia_tweets, insomnia_one_day) %>%
+                      group_by(week)
+  cantsleep_tweets<- rbind(cantsleep_tweets, cantsleep_one_day) %>%
+                      group_by(week)
+  wideawake_tweets<- rbind(wideawake_tweets, wideawake_one_day) %>%
+                      group_by(week)
+  nosleep_tweets<- rbind(nosleep_tweets, nosleep_one_day) %>%
                       group_by(week)
 }
-cantsleep_tweets<-twitter_function('#cantsleep') #do same as above
-wideawake_tweets<-twitter_function('#wideawake')
-nosleep_tweets<-twitter_function('#nosleep')
 
 master_table<-insomnia_tweets%>%full_join(cantsleep_tweets,by='week')%>%
                   full_join(wideawake_tweets,by='week')%>%
                   full_join(nosleep_tweets, by='week')%>%
                   mutate(insomnia_count = count.x, cantsleep_count = count.y, wideawake_count = count.x.x, nosleep_count = count.y.y)%>%
                   summarise(week,totalcount=insomnia_count+cantsleep_count+wideawake_count+nosleep_count)
-master_table
 ```
 
-```{r}
-#three_am_function<-function(all) {
-    
-  #all_tweets <- searchTwitter(all,
-                                  # n=5000, 
-                                   #lang="en", 
-                                   #since=as.char(Sys.Date()-7),
-                                   #until=as.char(Sys.Date()))
-  
- # three_am_tweets <- tbl_df(map_df(all_tweets, as.data.frame))
-  
-   # return(three_am_tweets)
- # }
-#test_tweets<-three_am_function(' ')
-#test_tweets<-test_tweets%>%
-             #mutate(time=format(created,format='%H:%M:%S'))
-#there are no tweets in the early AM hours: only those leading up to midnight
-```
 
 ```{r}
 
@@ -134,11 +121,6 @@ if(Sys.Date() == "2017-11-19"){
   three_am_total <- rbind(three_am_total, three_am_one_day) %>%
                       group_by(week)
 }
-
-#three_am_tweets <- eastern_time_zone%>%
-#                        mutate(week=week(Sys.Date()))%>%
-#                        group_by(week)%>%
-#                        summarise(late_night_count=n())
 ```
 
 
