@@ -58,31 +58,26 @@ no.of.tweets <- 10000
   tweets_w_hashtag <- searchTwitter(hashtag, 
                                    n=no.of.tweets, 
                                    lang="en", 
-                                   since=as.char(Sys.Date()-7),
+                                   since=as.char(Sys.Date()),
                                    until=as.char(Sys.Date()))
   
   hashtag_df <- tbl_df(map_df(tweets_w_hashtag, as.data.frame))
- 
-  if(Sys.Date() == "2017-11-19"){
-  hashtag_total <- hashtag_df%>%
-                        mutate(week=week(Sys.Date()))%>%
+  hashtag_df%>%    mutate(week=week(Sys.Date()))%>%
                         summarise(hashtag_count=n())
-} else{
-  hashtag_one_day <- hashtag_df%>%
-                        mutate(week=week(Sys.Date()))%>%
-                        summarise(late_night_count=n())
-  
-  hashtag_total <- rbind(hashtag_total, hashtag_one_day) %>%
-                      group_by(week)
-}
-    return(hashtag_total)
+
+    return(hashtag_df)
     }
     
+if(Sys.Date() == "2017-11-19"){
+  twitter_function('#insomnia')
+  hashtag_total <- twitter_function('#insomnia')
+} else{
+  hashtag_one_day <- twitter_function('#insomnia')
   
-  
-
-insomnia_tweets<-twitter_function('#insomnia')
-cantsleep_tweets<-twitter_function('#cantsleep')
+  three_am_total <- rbind(hashtag_total, hashtag_one_day) %>%
+                      group_by(week)
+}
+cantsleep_tweets<-twitter_function('#cantsleep') #do same as above
 wideawake_tweets<-twitter_function('#wideawake')
 nosleep_tweets<-twitter_function('#nosleep')
 
