@@ -24,23 +24,23 @@ library(httpuv)
 #download.file(url="http://curl.haxx.se/ca/cacert.pem",destfile="cacert.pem")
 
 #create an object "cred" that will save the authenticated object that we can use for later sessions
-# cred <- OAuthFactory$new(consumerKey='xa1wWUs5shIvAcot57r7xhQZE',
-#      consumerSecret='AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw',
-#      requestURL='https://api.twitter.com/oauth/request_token',
-#      accessURL='https://api.twitter.com/oauth/access_token',
-#     authURL='https://api.twitter.com/oauth/authorize')
+#cred <- OAuthFactory$new(consumerKey='xa1wWUs5shIvAcot57r7xhQZE',
+  #   consumerSecret='AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw',
+   #  requestURL='https://api.twitter.com/oauth/request_token',
+  #   accessURL='https://api.twitter.com/oauth/access_token',
+  #  authURL='https://api.twitter.com/oauth/authorize')
 # Executing the next step generates an output --> To enable the connection, please direct your web browser to: <hyperlink> . Note:  You only need to do this part once
 
- # cred$handshake(cainfo="cacert.pem")
+#cred$handshake(cainfo="cacert.pem")
 
- #  save(cred, file="twitter authentication.Rdata")
+  # save(cred, file="twitter authentication.Rdata")
    
-   load("twitter authentication.Rdata")
+  # load("twitter authentication.Rdata")
    
   consumer_key<-"xa1wWUs5shIvAcot57r7xhQZE"
   consumer_secret<-"AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw"
-  access_token<-"805657646-4fqd7p414MUdX5Cg01wcqEToqmtmdsPM37ieg8gX"
-  access_secret<-"6nxHYM2GTCtaLG9whtTKsdqexqellVBmtneZC7X5POPEP"
+  access_token<-"805657646-BqiYCdamk9L8dlEvENPCmDhjXFNIv7RCLROdvREK"
+  access_secret<-"s7sySayvq3Pvmj7Mg0aOeIxdBDAFR8H4sVJZb86Bj7Iyi"
 
 
   setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
@@ -49,34 +49,34 @@ library(httpuv)
 
 ```{r}
 
-no.of.tweets <- 10000
+no.of.tweets <- 10
   
   twitter_function<-function(hashtag) {
     
   tweets_w_hashtag <- searchTwitter(hashtag, 
                                    n=no.of.tweets, 
                                    lang="en", 
-                                   since=as.char(Sys.Date()),
+                                   since=as.char(Sys.Date()-1),
                                    until=as.char(Sys.Date()))
   
-  hashtag_df <- tbl_df(map_df(tweets_w_hashtag, as.data.frame))
-  hashtag_df%>%    mutate(week=week(Sys.Date()))%>%
+  hashtag_df<- tbl_df(map_df(tweets_w_hashtag, as.data.frame))
+  hashtag_df%>%mutate(week=week(Sys.Date()))%>%
                         summarise(count=n())
 
     return(hashtag_df)
     }
-    
-if(Sys.Date() == "2017-11-19"){
-  insomnia_tweets <- twitter_function('#insomnia')
+  
+if(Sys.Date() == "2017-11-20"){
+  insomnia_tweets<-twitter_function('#insomnia')
   cantsleep_tweets<-twitter_function('#cantsleep')
   wideawake_tweets<-twitter_function('#wideawake')
   nosleep_tweets<-twitter_function('#nosleep')
 } else{
-  insomnia_one_day <- twitter_function('#insomnia')
-  cantsleep_one_day <- twitter_function('#cantsleep')
-  wideawake_one_day <- twitter_function('#wideawake')
-  nosleep_one_day <- twitter_function('#nosleep')
-  
+  insomnia_one_day<-twitter_function('#insomnia')
+  cantsleep_one_day<-twitter_function('#cantsleep')
+  wideawake_one_day<-twitter_function('#wideawake')
+  nosleep_one_day<-twitter_function('#nosleep')
+
   insomnia_tweets<- rbind(insomnia_tweets, insomnia_one_day) %>%
                       group_by(week)
   cantsleep_tweets<- rbind(cantsleep_tweets, cantsleep_one_day) %>%
