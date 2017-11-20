@@ -87,11 +87,11 @@ if(Sys.Date() == "2017-11-20"){
                       group_by(week)
 }
 
-master_table<-insomnia_tweets%>%full_join(cantsleep_tweets,by='week')%>%
-                  full_join(wideawake_tweets,by='week')%>%
-                  full_join(nosleep_tweets, by='week')%>%
-                  mutate(insomnia_count = count.x, cantsleep_count = count.y, wideawake_count = count.x.x, nosleep_count = count.y.y)%>%
-                  summarise(week,totalcount=insomnia_count+cantsleep_count+wideawake_count+nosleep_count)
+#master_table<-insomnia_tweets%>%full_join(cantsleep_tweets,by='week')%>%
+ #                 full_join(wideawake_tweets,by='week')%>%
+ #                 full_join(nosleep_tweets, by='week')%>%
+ #                 mutate(insomnia_count = count.x, cantsleep_count = count.y, wideawake_count = count.x.x, nosleep_count = count.y.y)%>%
+    #              summarise(week,totalcount=insomnia_count+cantsleep_count+wideawake_count+nosleep_count)
 ```
 
 
@@ -109,7 +109,7 @@ eastern_time_zone <- stream_tweets(
 
 #effectively updating the total table to not be rewritten each time the script is run
 #Date below has to change to whatever the first date is we plan to automate the script
-if(Sys.Date() == "2017-11-19"){
+if(Sys.Date() == "2017-11-20"){
   three_am_total <- eastern_time_zone%>%
                         mutate(week=week(Sys.Date()))%>%
                         summarise(late_night_count=n())
@@ -151,5 +151,9 @@ master_table%>%full_join(lunar_statistics, by = 'week')%>%
                full_join(three_am_total, by = 'week')%>%
                group_by(phase)%>%
                summarise(total_hashtag_tweet_count = sum(totalcount,na.rm = TRUE), num_late_night_tweets = sum(late_night_count))
+```
+
+```{r}
+quit(save="no")
 ```
 
