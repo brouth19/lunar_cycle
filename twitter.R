@@ -149,6 +149,5 @@ master_table%>%full_join(lunar_statistics, by = 'week')%>%
 
 
 
-quit(save="no")
 
 
