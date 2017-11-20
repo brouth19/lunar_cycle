@@ -48,9 +48,12 @@ library(httpuv)
 
 
 ```{r}
-  no.of.tweets <- 10000
   
-    twitter_function<-function(hashtag) {
+
+no.of.tweets <- 10000
+  
+
+  twitter_function<-function(hashtag,df) {
     
   tweets_w_hashtag <- searchTwitter(hashtag, 
                                    n=no.of.tweets, 
@@ -60,11 +63,22 @@ library(httpuv)
   
   hashtag_df <- tbl_df(map_df(tweets_w_hashtag, as.data.frame))
  
-  hashtag_df<-hashtag_df%>%mutate(week=week(Sys.Date()))%>%
-                        group_by(week)%>%
-                        summarise(count=n())
-    return(hashtag_df)
-  }
+  if(Sys.Date() == "2017-11-19"){
+  hashtag_total <- hashtag_df%>%
+                        mutate(week=week(Sys.Date()))%>%
+                        summarise(hashtag_count=n())
+} else{
+  hashtag_one_day <- hashtag_df%>%
+                        mutate(week=week(Sys.Date()))%>%
+                        summarise(late_night_count=n())
+  
+  hashtag_total <- rbind(hashtag_total, hashtag_one_day) %>%
+                      group_by(week)
+}
+    return(hashtag_total,df)
+    }
+    
+  
 insomnia_tweets<-twitter_function('#insomnia')
 cantsleep_tweets<-twitter_function('#cantsleep')
 wideawake_tweets<-twitter_function('#wideawake')
