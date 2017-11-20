@@ -53,7 +53,7 @@ library(httpuv)
 no.of.tweets <- 10000
   
 
-  twitter_function<-function(hashtag,df) {
+  twitter_function<-function(hashtag) {
     
   tweets_w_hashtag <- searchTwitter(hashtag, 
                                    n=no.of.tweets, 
@@ -75,10 +75,12 @@ no.of.tweets <- 10000
   hashtag_total <- rbind(hashtag_total, hashtag_one_day) %>%
                       group_by(week)
 }
-    return(hashtag_total,df)
+    return(hashtag_total)
     }
     
   
+  
+
 insomnia_tweets<-twitter_function('#insomnia')
 cantsleep_tweets<-twitter_function('#cantsleep')
 wideawake_tweets<-twitter_function('#wideawake')
