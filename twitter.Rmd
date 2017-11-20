@@ -70,11 +70,11 @@ no.of.tweets <- 10000
     
 if(Sys.Date() == "2017-11-19"){
   twitter_function('#insomnia')
-  hashtag_total <- twitter_function('#insomnia')
+  insomnia_tweets <- twitter_function('#insomnia')
 } else{
   hashtag_one_day <- twitter_function('#insomnia')
   
-  three_am_total <- rbind(hashtag_total, hashtag_one_day) %>%
+  insomnia_tweets<- rbind(insomnia_tweets, hashtag_one_day) %>%
                       group_by(week)
 }
 cantsleep_tweets<-twitter_function('#cantsleep') #do same as above
