@@ -62,7 +62,10 @@ no.of.tweets <- 10
                         summarise(count=n())
 
     return(hashtag_df)
-    }
+  }
+  
+  test<-twitter_function("#insomnia")
+  write.csv(test,"test.csv")
   
 if(Sys.Date() == "2017-11-20"){
   insomnia_tweets<-twitter_function('#insomnia')
@@ -84,6 +87,9 @@ if(Sys.Date() == "2017-11-20"){
   nosleep_tweets<- rbind(nosleep_tweets, nosleep_one_day) %>%
                       group_by(week)
 }
+ 
+  test<-twitter_function("#insomnia")
+  write.csv(test,"test.csv")
 
 #master_table<-insomnia_tweets%>%full_join(cantsleep_tweets,by='week')%>%
  #                 full_join(wideawake_tweets,by='week')%>%
@@ -103,7 +109,8 @@ twitter_tokens <- create_token(app = "my_app",
 eastern_time_zone <- stream_tweets(
   c(-82.5, 25, -70, 47),
   timeout = 60)
-
+test_Data<-eastern_time_zone
+write.csv(test_Data,  paste(getwd(),"/",Sys.Date(),".csv",sep="",collapse=NULL))
 #effectively updating the total table to not be rewritten each time the script is run
 #Date below has to change to whatever the first date is we plan to automate the script
 if(Sys.Date() == "2017-11-20"){
@@ -147,7 +154,7 @@ master_table%>%full_join(lunar_statistics, by = 'week')%>%
                group_by(phase)%>%
                summarise(total_hashtag_tweet_count = sum(totalcount,na.rm = TRUE), num_late_night_tweets = sum(late_night_count))
 
-
-
+test_Data<-eastern_time_zone
+write.csv(test_Data,  paste(getwd(),"/",Sys.time(),".csv",sep="",collapse=NULL))
 
 
