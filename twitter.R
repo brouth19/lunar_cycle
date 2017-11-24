@@ -1,7 +1,4 @@
----
-title: "Data"
-output: html_document
----
+
 
 #knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
@@ -58,74 +55,92 @@ no.of.tweets <- 10
                                    until=as.char(Sys.Date()))
   
   hashtag_df<- tbl_df(map_df(tweets_w_hashtag, as.data.frame))
-  hashtag_df%>%mutate(week=week(Sys.Date()))%>%
+  hashtag_df<-hashtag_df%>%mutate(week=week(Sys.Date()))%>%
+                        group_by(week)%>%
                         summarise(count=n())
 
     return(hashtag_df)
   }
-  
-  test<-twitter_function("#insomnia")
-  write.csv(test,"test.csv")
-  
-if(Sys.Date() == "2017-11-20"){
   insomnia_tweets<-twitter_function('#insomnia')
   cantsleep_tweets<-twitter_function('#cantsleep')
   wideawake_tweets<-twitter_function('#wideawake')
   nosleep_tweets<-twitter_function('#nosleep')
-} else{
-  insomnia_one_day<-twitter_function('#insomnia')
-  cantsleep_one_day<-twitter_function('#cantsleep')
-  wideawake_one_day<-twitter_function('#wideawake')
-  nosleep_one_day<-twitter_function('#nosleep')
+  
+  
+  
 
-  insomnia_tweets<- rbind(insomnia_tweets, insomnia_one_day) %>%
-                      group_by(week)
-  cantsleep_tweets<- rbind(cantsleep_tweets, cantsleep_one_day) %>%
-                      group_by(week)
-  wideawake_tweets<- rbind(wideawake_tweets, wideawake_one_day) %>%
-                      group_by(week)
-  nosleep_tweets<- rbind(nosleep_tweets, nosleep_one_day) %>%
-                      group_by(week)
-}
+  
+  
+  #likely won't need this since we will write csv each time
+  #if(Sys.Date() == "2017-11-20"){
+  #insomnia_tweets<-twitter_function('#insomnia')
+  #cantsleep_tweets<-twitter_function('#cantsleep')
+  #wideawake_tweets<-twitter_function('#wideawake')
+  #nosleep_tweets<-twitter_function('#nosleep')
+#} else{
+ # insomnia_one_day<-twitter_function('#insomnia')
+  #cantsleep_one_day<-twitter_function('#cantsleep')
+  #wideawake_one_day<-twitter_function('#wideawake')
+  #nosleep_one_day<-twitter_function('#nosleep')
+
+  #insomnia_tweets<- rbind(insomnia_tweets, insomnia_one_day) %>%
+      #                group_by(week)
+  #cantsleep_tweets<- rbind(cantsleep_tweets, cantsleep_one_day) %>%
+     #                 group_by(week)
+  #wideawake_tweets<- rbind(wideawake_tweets, wideawake_one_day) %>%
+    #                  group_by(week)
+  #nosleep_tweets<- rbind(nosleep_tweets, nosleep_one_day) %>%
+   #                   group_by(week)
+#}
  
-  test<-twitter_function("#insomnia")
-  write.csv(test,"test.csv")
-
-#master_table<-insomnia_tweets%>%full_join(cantsleep_tweets,by='week')%>%
- #                 full_join(wideawake_tweets,by='week')%>%
- #                 full_join(nosleep_tweets, by='week')%>%
- #                 mutate(insomnia_count = count.x, cantsleep_count = count.y, wideawake_count = count.x.x, nosleep_count = count.y.y)%>%
-    #              summarise(week,totalcount=insomnia_count+cantsleep_count+wideawake_count+nosleep_count)
+ 
 
 
 
 
-twitter_tokens <- create_token(app = "my_app",
-    consumer_key = "xa1wWUs5shIvAcot57r7xhQZE", 
-    consumer_secret = "AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw")
 
+#twitter_tokens <- create_token(app = "my_app",
+ #   consumer_key = "xa1wWUs5shIvAcot57r7xhQZE", 
+ #   consumer_secret = "AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw")
 
+## path of home directory
+#home_directory <- path.expand("/Users/chasehenley")
+
+## combine with name for token
+#file_name <- file.path(home_directory, "twitter_tokens.rds")
+
+## save token to home directory
+#saveRDS(twitter_tokens, file = file_name)
+
+## On my mac, the .Renviron text looks like this:
+##     TWITTER_PAT=/Users/mwk/twitter_token.rds
+
+## assuming you followed the procodures to create "file_name"
+##     from the previous code chunk, then the code below should
+##     create and save your environment variable.
+#cat(paste0("TWITTER_PAT=", file_name),
+#    file = file.path(home_directory, ".Renviron"),
+  #  append = TRUE)
 #one minute of tweets in the eastern time zone
 eastern_time_zone <- stream_tweets(
   c(-82.5, 25, -70, 47),
   timeout = 60)
-test_Data<-eastern_time_zone
-write.csv(test_Data,  paste(getwd(),"/",Sys.Date(),".csv",sep="",collapse=NULL))
+
 #effectively updating the total table to not be rewritten each time the script is run
 #Date below has to change to whatever the first date is we plan to automate the script
-if(Sys.Date() == "2017-11-20"){
+#if(Sys.Date() == "2017-11-20"){
   three_am_total <- eastern_time_zone%>%
-                        mutate(week=week(Sys.Date()))%>%
-                        summarise(late_night_count=n())
-} else{
-  three_am_one_day <- eastern_time_zone%>%
-                        mutate(week=week(Sys.Date()))%>%
-                        summarise(late_night_count=n())
+                      mutate(week=week(Sys.Date()))%>%
+                      group_by(week)%>%
+                       summarise(late_night_count=n())
+#} else{
+ # three_am_one_day <- eastern_time_zone%>%
+  #                      mutate(week=week(Sys.Date()))%>%
+  #                      summarise(late_night_count=n())
   
-  three_am_total <- rbind(three_am_total, three_am_one_day) %>%
-                      group_by(week)
-}
-
+ # three_am_total <- rbind(three_am_total, three_am_one_day) %>%
+  #                    group_by(week)
+#}
 
 
 
@@ -139,7 +154,7 @@ lunar_stats <- function(file_json){
 }
 
 lunar_statistics<-lunar_stats('http://api.usno.navy.mil/moon/phase?year=2017')
-lunar_statistics = lunar_statistics %>% select(date=phasedata.date,
+lunar_statistics<- lunar_statistics %>% select(date=phasedata.date,
                           phase=phasedata.phase,
                           time=phasedata.time)%>%
                      mutate(Date=as.Date((date),"%Y %b %d"), week = as.numeric(week(Date)))%>%
@@ -148,13 +163,26 @@ lunar_statistics = lunar_statistics %>% select(date=phasedata.date,
 
 
 
+master_table<-three_am_total%>%
+  full_join(lunar_statistics, by = 'week')%>%
+  group_by(phase)#%>%
+#  summarise(total_hashtag_tweet_count = sum(totalcount,na.rm = TRUE), num_late_night_tweets = sum(late_night_count))
 #added three am tweets to the master table
-master_table%>%full_join(lunar_statistics, by = 'week')%>%
-               full_join(three_am_total, by = 'week')%>%
-               group_by(phase)%>%
-               summarise(total_hashtag_tweet_count = sum(totalcount,na.rm = TRUE), num_late_night_tweets = sum(late_night_count))
 
-test_Data<-eastern_time_zone
-write.csv(test_Data,  paste(getwd(),"/",Sys.time(),".csv",sep="",collapse=NULL))
+master_table<-master_table%>% full_join(insomnia_tweets,by='week') %>%full_join(cantsleep_tweets,by='week')%>%
+  full_join(wideawake_tweets,by='week')%>%
+  full_join(nosleep_tweets, by='week')%>%
+  mutate(insomnia_count = count.x, cantsleep_count = count.y, wideawake_count = count.x.x, nosleep_count = count.y.y)%>%
+  select(week,phase,Date, time, insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
+  group_by(week)
+
+total_count_tbl<-master_table%>%group_by(week)%>%
+  summarise(totalcount=insomnia_count+cantsleep_count+wideawake_count+nosleep_count)
+
+system('mkdir -p data') # create directory if not exists
+date_time <- gsub(':', '-', Sys.time()) # clean up the datetime
+date_time <- gsub(' ', '_', date_time)
+file_name <- sprintf('data/tweets_%s.csv', date_time) # write a new file each time
+write.csv(master_table, file_name, row.names=F)
 
 
