@@ -42,7 +42,7 @@ library(httpuv)
 
 
 
-no.of.tweets <- 1000
+no.of.tweets <- 10000 #this was only 1000 for first night of data collection 11/26
   
   twitter_function<-function(hashtag) {
     
