@@ -1,6 +1,4 @@
 
-
-#knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(twitteR)
 library(ROAuth)
@@ -44,13 +42,14 @@ library(httpuv)
 
 
 
-no.of.tweets <- 10
+no.of.tweets <- 1000
   
   twitter_function<-function(hashtag) {
     
   tweets_w_hashtag <- searchTwitter(hashtag, 
                                    n=no.of.tweets, 
                                    lang="en", 
+                                   #geocode = '82.5, 25, -70, 47',
                                    since=as.char(Sys.Date()-1),
                                    until=as.char(Sys.Date()))
   
