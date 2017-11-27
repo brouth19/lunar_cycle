@@ -9,7 +9,6 @@
 # 3. This should write a new csv every minute in lunar_cycle/crontab_test/data/
 # 4. If you have trouble check `which RScript` and replace the Rscript path if necessary.
 #----------------
-
 # get your data from twitter -------------
 #   i'll just generate some random data to simulate this
 n <- rpois(1,40)
