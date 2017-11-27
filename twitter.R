@@ -39,9 +39,6 @@ library(httpuv)
   setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
 
 
-
-
-
 no.of.tweets <- 10000 #this was only 1000 for first night of data collection 11/26
   
   twitter_function<-function(hashtag) {
@@ -65,39 +62,6 @@ no.of.tweets <- 10000 #this was only 1000 for first night of data collection 11/
   wideawake_tweets<-twitter_function('#wideawake')
   nosleep_tweets<-twitter_function('#nosleep')
   
-  
-  
-
-  
-  
-  #likely won't need this since we will write csv each time
-  #if(Sys.Date() == "2017-11-20"){
-  #insomnia_tweets<-twitter_function('#insomnia')
-  #cantsleep_tweets<-twitter_function('#cantsleep')
-  #wideawake_tweets<-twitter_function('#wideawake')
-  #nosleep_tweets<-twitter_function('#nosleep')
-#} else{
- # insomnia_one_day<-twitter_function('#insomnia')
-  #cantsleep_one_day<-twitter_function('#cantsleep')
-  #wideawake_one_day<-twitter_function('#wideawake')
-  #nosleep_one_day<-twitter_function('#nosleep')
-
-  #insomnia_tweets<- rbind(insomnia_tweets, insomnia_one_day) %>%
-      #                group_by(week)
-  #cantsleep_tweets<- rbind(cantsleep_tweets, cantsleep_one_day) %>%
-     #                 group_by(week)
-  #wideawake_tweets<- rbind(wideawake_tweets, wideawake_one_day) %>%
-    #                  group_by(week)
-  #nosleep_tweets<- rbind(nosleep_tweets, nosleep_one_day) %>%
-   #                   group_by(week)
-#}
- 
- 
-
-
-
-
-
 #twitter_tokens <- create_token(app = "my_app",
  #   consumer_key = "xa1wWUs5shIvAcot57r7xhQZE", 
  #   consumer_secret = "AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw")
@@ -125,22 +89,11 @@ eastern_time_zone <- stream_tweets(
   c(-82.5, 25, -70, 47),
   timeout = 60)
 
-#effectively updating the total table to not be rewritten each time the script is run
-#Date below has to change to whatever the first date is we plan to automate the script
-#if(Sys.Date() == "2017-11-20"){
+
   three_am_total <- eastern_time_zone%>%
                       mutate(week=week(Sys.Date()))%>%
                       group_by(week)%>%
                        summarise(late_night_count=n())
-#} else{
- # three_am_one_day <- eastern_time_zone%>%
-  #                      mutate(week=week(Sys.Date()))%>%
-  #                      summarise(late_night_count=n())
-  
- # three_am_total <- rbind(three_am_total, three_am_one_day) %>%
-  #                    group_by(week)
-#}
-
 
 
 lunar_stats <- function(file_json){
@@ -158,9 +111,6 @@ lunar_statistics<- lunar_statistics %>% select(date=phasedata.date,
                           time=phasedata.time)%>%
                      mutate(Date=as.Date((date),"%Y %b %d"), week = as.numeric(week(Date)))%>%
                      select(phase,Date,time,week)
-
-
-
 
 master_table<-three_am_total%>%
   full_join(lunar_statistics, by = 'week')%>%
