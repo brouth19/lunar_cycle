@@ -1,4 +1,4 @@
-
+#full moon phase is 12/3-12/10
 library(tidyverse)
 library(twitteR)
 library(ROAuth)
