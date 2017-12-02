@@ -11,7 +11,7 @@ library(lubridate)
 library(magrittr)
 library(rtweet)
 library(httpuv)
-library(plyr)
+#library(plyr)
 
 # Download "cacert.pem" file
 #download.file(url="http://curl.haxx.se/ca/cacert.pem",destfile="cacert.pem")
@@ -64,9 +64,9 @@ no.of.tweets <- 10000 #this was only 1000 for first night of data collection 11/
   
 #twitter_tokens <- create_token(app = "my_app",
  #   consumer_key = "xa1wWUs5shIvAcot57r7xhQZE", 
- #   consumer_secret = "AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw")
+  #  consumer_secret = "AQFXM5ZQ2YMoq1qIhzlYsU5j7ASULzT8wwEw9He6upZVnMRMKw")
 
-## path of home directory
+# path of home directory
 #home_directory <- path.expand("/Users/chasehenley")
 
 ## combine with name for token
@@ -76,21 +76,21 @@ no.of.tweets <- 10000 #this was only 1000 for first night of data collection 11/
 #saveRDS(twitter_tokens, file = file_name)
 
 ## On my mac, the .Renviron text looks like this:
-##     TWITTER_PAT=/Users/mwk/twitter_token.rds
+  #   TWITTER_PAT=/Users/mwk/twitter_token.rds
 
 ## assuming you followed the procodures to create "file_name"
 ##     from the previous code chunk, then the code below should
 ##     create and save your environment variable.
 #cat(paste0("TWITTER_PAT=", file_name),
-#    file = file.path(home_directory, ".Renviron"),
-  #  append = TRUE)
+ #  file = file.path(home_directory, ".Renviron"),
+  # append = TRUE)
 #one minute of tweets in the eastern time zone
-eastern_time_zone <- stream_tweets(
-  c(-82.5, 25, -70, 47),
-  timeout = 60)
+#eastern_time_zone <- stream_tweets(
+ # c(-82.5, 25, -70, 47),
+  #timeout = 60)
 
 
-  three_am_total <- eastern_time_zone%>%
+  three_am_total<- eastern_time_zone%>%
                       mutate(week=week(Sys.Date()))%>%
                       group_by(week)%>%
                        summarise(late_night_count=n())
@@ -143,7 +143,7 @@ if(Sys.Date()="2017-12-02")
     summarise(week,phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)
   }
 
-
+#converts csv files to dataframes and then combines them
 data_frame_merger<-function(csv){
  
   df<-read_csv(csv)
