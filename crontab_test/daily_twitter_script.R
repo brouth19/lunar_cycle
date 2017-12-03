@@ -21,5 +21,3 @@ date_time <- gsub(' ', '_', date_time)
 file_name <- sprintf('data/tweets_%s.csv', date_time) # write a new file each time
 write.csv(twitter_df, file_name, row.names=F)
 
-pnorm(.04)-pnorm(-.02)
-pnorm(.08)
