@@ -11,7 +11,6 @@ library(lubridate)
 library(magrittr)
 library(rtweet)
 library(httpuv)
-#library(plyr)
 
 # Download "cacert.pem" file
 #download.file(url="http://curl.haxx.se/ca/cacert.pem",destfile="cacert.pem")
