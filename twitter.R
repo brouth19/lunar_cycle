@@ -38,7 +38,7 @@ library(httpuv)
   setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
 
 
-no.of.tweets <- 10000 #this was only 1000 for first night of data collection 11/26
+  no.of.tweets <- 10000 #this was only 1000 for first night of data collection 11/26
   
   twitter_function<-function(hashtag) {
     
@@ -91,7 +91,7 @@ eastern_time_zone <- stream_tweets(
   timeout = 60)
 
 
-  three_am_total<- eastern_time_zone%>%
+three_am_total<- eastern_time_zone%>%
                       mutate(week=week(Sys.Date()))%>%
                       group_by(week)%>%
                        summarise(late_night_count=n())
@@ -115,8 +115,8 @@ lunar_statistics<- lunar_statistics %>% select(date=phasedata.date,
 
 master_table<-three_am_total%>%
   full_join(lunar_statistics, by = 'week')%>%
-  group_by(phase)#%>%
-#  summarise(total_hashtag_tweet_count = sum(totalcount,na.rm = TRUE), num_late_night_tweets = sum(late_night_count))
+  group_by(phase)
+
 #added three am tweets to the master table
 
 master_table<-master_table%>% full_join(insomnia_tweets,by='week') %>%full_join(cantsleep_tweets,by='week')%>%
@@ -126,15 +126,11 @@ master_table<-master_table%>% full_join(insomnia_tweets,by='week') %>%full_join(
   select(week,phase,Date, time, insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
   group_by(week)
 
-total_count_tbl<-master_table%>%group_by(week)%>%
-  summarise(totalcount=insomnia_count+cantsleep_count+wideawake_count+nosleep_count)
-
 system('mkdir -p data') # create directory if not exists
 date_time <- gsub(':', '-', Sys.time()) # clean up the datetime
 date_time <- gsub(' ', '_', date_time)
 file_name <- sprintf('data/tweets_%s.csv', date_time) # write a new file each time
 write.csv(master_table, file_name, row.names=F)
-
 
 
 if(Sys.Date()=="2017-12-02")
@@ -148,7 +144,7 @@ if(Sys.Date()=="2017-12-02")
 #converts csv files to dataframes and then combines them
 data_frame_merger<-function(csv){
  
-  df<-read_csv(csv)
+ df<-read_csv(csv)
   
  df<-df%>%head(1)%>%select(week, phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
    summarise(week,phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)

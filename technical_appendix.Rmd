@@ -1,0 +1,215 @@
+---
+title: "Analysis of the Influence the Lunar Cycle has on Sleeping Patterns"
+author: "Chase Henley and Brendan Routh"
+date: "December 13th 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Abstract: Have you ever wondered the etymology of the phrase lunatic? For centuries, it has been proposed that the moon has various effects on biological behaviors and processes.  This paper details the relationship between the lunar cycle and the sleeping pattern of humans. We used twitter data to detect how well people are sleeping during the various stages of the lunar cycle. The exploration resulted in a statistically significant result that lunar cycle, specifically full moons, does in fact effect the sleeping pattern of humans.
+
+Introduction: an overview of your project. In a few paragraphs, you should explain clearly and precisely what your research question is, why it is interesting, and what contribution you have made towards answering that question. You should give an overview of the specifics of your model, but not the full details. Most readers never make it past the introduction, so this is your chance to hook the reader, and is in many ways the most important part of the paper!
+
+
+It is well known that the lunar cycle effects the tides of the oceans, but are there other areas of life effected by the phase of the moon? The intent of this analysis is to determine the effect of the moon on the sleeping patterns of humans. The following question will be answered by the analysis done below: during full moons, is there an increase in late-night user activity on Twitter and/or a noticeable increase in tweets containing words indicative of sleeplessness? The reason for the use of Twitter to help determine how well humans are sleeping is a) we do not have access the sleep study data and don't have enough willing patrons to let us watch them sleep and b) social media is a place where we can access the details of millions of peoples lives very easily. Some people very actively detail their lives on social media and provide insight into numerous habits, sleeping pattern being one. 
+The reason for the interest in this question is that it is relevant to every human who lives on this Earth. Sleep is one of life's greatest pleasures and the thought that a natural uncontrollable process such as the cycle of the moon can effect sleep all of a sudden makes the lunar cycle more important. Now, people will have to take into account what cycle of the moon when determining what time to fall asleep at night. So should you allocate an extra hour of sleep when there is a full moon because you are going to sleep less? Our analysis has not fully contributed to the answering of this question, but the work that we have completed has setup a method to properly acquire the necessary data to receive statistically significant results in the future. In order to properly conclude a result, there would need to be at least 30 lunar cycle's worth of data. A lunar cycle lasts 28 days, so the data collection would last 840 days. That timeline was not feasible for this project, but the data collection methods can be used to determine a result if you are reading this, have the appropriate time, and want to figure out the answer. 
+
+
+
+Data: Ultimately, the data being looked at has eight variables: week, phase, date, number of tweets with the hashtag #insomnia, number of tweets with the hashtag #cantsleep, number of tweets with the hashtag #wideawake, number of tweets with the hashtag #nosleep, and the number of tweets at 3:00am. This data came directly from Twitter by using the Twitter API. The process to derive this data required numerous other datasets along the way. The population  was all tweets in the Twittersphere and the tweets that had those hashtags. The sample collected for the tweets with the hashtags was actually the population more often than not. The maximum number of tweets read in was 10,000 so that the file could be run efficiently. So if there had been more than 10,000 tweets with certain hashtag, then the sample truly would be a sample that was randomly selected by the twitteR package's function. But more often then not, the sample was the population.  
+
+
+
+The packages necessary in order to run the code below. 
+```{r}
+library(tidyverse)
+library(twitteR)
+library(ROAuth)
+library(devtools)
+library(httr)
+library(jsonlite)
+library(readr)
+library(RDS)
+library(lubridate)
+library(magrittr)
+library(rtweet)
+library(httpuv)
+```
+
+
+In order to access Twitter data from the API, one must request permission and set up authorization. Hence, the purpose of the code chunk below.
+```{r}
+setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
+```
+
+Now since the access to the twitter data was granted, we need to search for the specific data that we want in order to answer our problem. The twitter_function function created in this code chunk utilizes the twitteR package searchTwitter function to locate at most 10,000 tweets from the past day that contain a certain string in the tweet. The function then counts the number of tweets and returns that value in a dataframe. We decided to run the twitter_function to find tweets with #insomnia, #cantsleep, #wideawake, or #nosleep contained in the tweet to figure out when Twitter users aren't able to sleep well. 
+```{r}
+no.of.tweets <- 10000 
+  
+twitter_function<-function(hashtag) {
+    
+tweets_w_hashtag <- searchTwitter(hashtag, 
+                                   n=no.of.tweets, 
+                                   lang="en", 
+                                   since=as.char(Sys.Date()-1),
+                                   until=as.char(Sys.Date()))
+  
+hashtag_df<- tbl_df(map_df(tweets_w_hashtag, as.data.frame))
+hashtag_df<-hashtag_df%>%mutate(week=week(Sys.Date()))%>%
+                        group_by(week)%>%
+                        summarise(count=n())
+
+    return(hashtag_df)
+  }
+  
+insomnia_tweets<-twitter_function('#insomnia')
+cantsleep_tweets<-twitter_function('#cantsleep')
+wideawake_tweets<-twitter_function('#wideawake')
+nosleep_tweets<-twitter_function('#nosleep')
+```
+
+Another methodology used to determine when people are not able to sleep is to see how many people are tweeting at 3:00am. The code chunk below utilizes the rtweet package's stream_tweets function in order to stream all live tweets for 60 seconds. The number of tweets tweeted during this 60 second span at 3:00am only on the East Coast is then counted and this value is stored in the three_am_total data frame.
+```{r}
+eastern_time_zone <- stream_tweets(
+  c(-82.5, 25, -70, 47),
+  timeout = 60)
+
+
+three_am_total<- eastern_time_zone%>%
+                      mutate(week=week(Sys.Date()))%>%
+                      group_by(week)%>%
+                       summarise(late_night_count=n())
+```
+
+Here we retrieve the data regarding the lunar cycle by utilizing an API and converting the JSON file to a dataframe.
+```{r}
+lunar_stats <- function(file_json){
+    
+    lunar_data<-fromJSON(file_json)
+    lunar_data_frame<-as.data.frame(lunar_data)
+    
+   
+  return(lunar_data_frame)
+}
+
+lunar_statistics<-lunar_stats('http://api.usno.navy.mil/moon/phase?year=2017')
+```
+
+Now that all of the data is collected, it needs to be combined into one master_table so that all of the information can be accessed easily in one place.
+```{r}
+master_table<-three_am_total%>%
+  full_join(lunar_statistics, by = 'week')%>%
+  group_by(phase)
+
+#added three am tweets to the master table
+
+master_table<-master_table%>% full_join(insomnia_tweets,by='week') %>%full_join(cantsleep_tweets,by='week')%>%
+  full_join(wideawake_tweets,by='week')%>%
+  full_join(nosleep_tweets, by='week')%>%
+  mutate(insomnia_count = count.x, cantsleep_count = count.y, wideawake_count = count.x.x, nosleep_count = count.y.y)%>%
+  select(week,phase,Date, time, insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
+  group_by(week)
+```
+
+
+Each night the code automatically runs at 3:00am and executes the functions described above. The results from these executions needs to be stored, but since it is running automatically we are not able to manually name and save the file each time it runs. That is why the chunk below automatically writes the data results to a csv each night and saves the file as the date on which it was run. 
+```{r}
+system('mkdir -p data') # create directory if not exists
+date_time <- gsub(':', '-', Sys.time()) # clean up the datetime
+date_time <- gsub(' ', '_', date_time)
+file_name <- sprintf('data/tweets_%s.csv', date_time) # write a new file each time
+write.csv(master_table, file_name, row.names=F)
+```
+
+The result of the code chunk above is a list of CSVs, one for each night the code is run. In order to answer the question that this project hopes to answer, we need the number of tweets not for one night, but for many nights. So, the information recorded in the CSVs has to be extracted from the CSVs and aggregated so that statistical analysis is able to be done. The data_frame_merger function reads in one night's CSV, copies the different number of tweets categories for the one night, and adds those values to the aggregated_table so that there is one table that has a running sum of the number of tweets.The last line of code in this chunk automatically runs this function each night.
+```{r}
+data_frame_merger<-function(csv){
+ 
+ df<-read_csv(csv)
+  
+ df<-df%>%head(1)%>%select(week, phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
+   summarise(week,phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)
+
+  aggregated_table<-bind_rows(aggregated_table,df)
+  
+  aggregated_table<-aggregated_table%>%
+    group_by(week)%>%
+    summarise(insomnia_count= sum(insomnia_count),cantsleep_count=sum(cantsleep_count),
+              wideawake_count=sum(wideawake_count),nosleep_count=sum(nosleep_count),late_night_count=sum(late_night_count))
+  
+  aggregated_table <-aggregated_table%>%
+    head(1)%>%
+    mutate(week = df$week, phase = df$phase)
+setwd("/Users/chasehenley/Stats/lunar_cycle") 
+ return(aggregated_table)
+}
+
+setwd("/Users/chasehenley/Stats/lunar_cycle/data")
+aggregated_table<-data_frame_merger(file_name)
+```
+
+We next created a data for each phase so that the values for a specific phase can be accessed easily in order to perform basic statistics tests on the values. The total number of tweets and the average number of tweets were recorded.
+```{r}
+first_quarter <- aggregated_table %>%
+              filter(phase == 'First Quarter') %>% 
+              summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
+                        cantsleep_count=sum(cantsleep_count), cantsleep_avg=mean(cantsleep_count),
+                        wideawake_count=sum(wideawake_count), wideawake_avg=mean(wideawake_count),
+                        nosleep_count=sum(nosleep_count), nosleep_avg=mean(nosleep_count),
+                        late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
+
+full_moon <- aggregated_table %>%
+  filter(phase == 'Full Moon') %>% 
+  summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
+            cantsleep_count=sum(cantsleep_count), cantsleep_avg=mean(cantsleep_count),
+            wideawake_count=sum(wideawake_count), wideawake_avg=mean(wideawake_count),
+            nosleep_count=sum(nosleep_count), nosleep_avg=mean(nosleep_count),
+            late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
+
+last_quarter <- aggregated_table %>%
+  filter(phase == 'Last Quarter') %>% 
+  summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
+            cantsleep_count=sum(cantsleep_count), cantsleep_avg=mean(cantsleep_count),
+            wideawake_count=sum(wideawake_count), wideawake_avg=mean(wideawake_count),
+            nosleep_count=sum(nosleep_count), nosleep_avg=mean(nosleep_count),
+            late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
+
+new_moon <- aggregated_table %>%
+  filter(phase == 'New Moon') %>% 
+  summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
+            cantsleep_count=sum(cantsleep_count), cantsleep_avg=mean(cantsleep_count),
+            wideawake_count=sum(wideawake_count), wideawake_avg=mean(wideawake_count),
+            nosleep_count=sum(nosleep_count), nosleep_avg=mean(nosleep_count),
+            late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
+```
+
+In order to see whether the difference in number of tweets per lunar phase is statistically significant, basic two sample t tests are performed on the averages. The result of these tests will indicate whether the lunar phase does effect the sleeping pattern of humans and ultimately answer our research question. 
+```{r}
+#insomnia_avg
+ifelse(t.test(full_moon$insomnia_avg ~ first_quarter$insomnia_avg) <= .1, print("Significant: full_moon$insomnia_avg ~ first_quarter$insomnia_avg"),print())
+ifelse(t.test(full_moon$insomnia_avg ~ new_moon$insomnia_avg) <= .1, print("Significant: full_moon$insomnia_avg ~ new_moon$insomnia_avg"),print())
+ifelse(t.test(full_moon$insomnia_avg ~ last_quarter$insomnia_avg) <= .1, print("Significant: full_moon$insomnia_avg ~ last_quarter$insomnia_avg"),print())
+```
+
+
+This code chunk visualizes all of the data resulting from the collection and calculations above. Bar plots are used to visualize the difference in average number of tweets per night during a certain lunar phase. 
+```{r}
+visual_df<-aggregated_table %>%
+  group_by(phase) %>% 
+  summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
+            cantsleep_count=sum(cantsleep_count), cantsleep_avg=mean(cantsleep_count),
+            wideawake_count=sum(wideawake_count), wideawake_avg=mean(wideawake_count),
+            nosleep_count=sum(nosleep_count), nosleep_avg=mean(nosleep_count),
+            late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
+
+#plots
+visual_df%>%ggplot(aes(x=phase,y=insomnia_avg))+geom_bar(stat="identity")+ggtitle("Average Number of Tweets per Night with #insomnia")+xlab("Phase")+ylab("Average Number of Tweets")
+visual_df%>%ggplot(aes(x=phase,y=cantsleep_avg))+geom_bar(stat="identity")+ggtitle("Average Number of Tweets per Night with #cantsleep")+xlab("Phase")+ylab("Average Number of Tweets")
+visual_df%>%ggplot(aes(x=phase,y=wideawake_avg))+geom_bar(stat="identity")+ggtitle("Average Number of Tweets per Night with #wideawake")+xlab("Phase")+ylab("Average Number of Tweets")
+visual_df%>%ggplot(aes(x=phase,y=nosleep_avg))+geom_bar(stat="identity")+ggtitle("Average Number of Tweets per Night with #nosleep")+xlab("Phase")+ylab("Average Number of Tweets")
+visual_df%>%ggplot(aes(x=phase,y=late_night_avg))+geom_bar(stat="identity")+ggtitle("Average Number of Tweets per Night at 3 am")+xlab("Phase")+ylab("Average Number of Tweets")
+```
+
