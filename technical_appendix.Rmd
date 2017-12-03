@@ -186,12 +186,32 @@ new_moon <- aggregated_table %>%
             late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
 ```
 
-In order to see whether the difference in number of tweets per lunar phase is statistically significant, basic two sample t tests are performed on the averages. The result of these tests will indicate whether the lunar phase does effect the sleeping pattern of humans and ultimately answer our research question. 
+In order to see whether the difference in number of tweets per lunar phase is statistically significant, basic two sample t tests are performed on the averages. The result of these tests will indicate whether the lunar phase does effect the sleeping pattern of humans and ultimately answer our research question.
 ```{r}
 #insomnia_avg
 ifelse(t.test(full_moon$insomnia_avg ~ first_quarter$insomnia_avg) <= .1, print("Significant: full_moon$insomnia_avg ~ first_quarter$insomnia_avg"),print())
 ifelse(t.test(full_moon$insomnia_avg ~ new_moon$insomnia_avg) <= .1, print("Significant: full_moon$insomnia_avg ~ new_moon$insomnia_avg"),print())
 ifelse(t.test(full_moon$insomnia_avg ~ last_quarter$insomnia_avg) <= .1, print("Significant: full_moon$insomnia_avg ~ last_quarter$insomnia_avg"),print())
+
+#cantsleep_avg
+ifelse(t.test(full_moon$cantsleep_avg ~ first_quarter$cantsleep_avg) <= .1, print("Significant: full_moon$cantsleep_avg ~ first_quarter$cantsleep_avg"),print())
+ifelse(t.test(full_moon$cantsleep_avg ~ new_moon$cantsleep_avg) <= .1, print("Significant: full_moon$cantsleep_avg ~ new_moon$cantsleep_avg"),print())
+ifelse(t.test(full_moon$cantsleep_avg ~ last_quarter$cantsleep_avg) <= .1, print("Significant: full_moon$cantsleep_avg ~ last_quarter$cantsleep_avg"),print())
+
+#wideawake_avg
+ifelse(t.test(full_moon$wideawake_avg ~ first_quarter$wideawake_avg) <= .1, print("Significant: full_moon$wideawake_avg ~ first_quarter$wideawake_avg"),print())
+ifelse(t.test(full_moon$wideawake_avg ~ new_moon$wideawake_avg)<= .1, print("Significant: full_moon$wideawake_avg ~ new_moon$wideawake_avg"),print())
+ifelse(t.test(full_moon$wideawake_avg ~ last_quarter$wideawake_avg) <= .1, print("Significant: full_moon$wideawake_avg ~ last_quarter$wideawake_avg"),print())
+
+#nosleep_avg
+ifelse(t.test(full_moon$nosleep_avg ~ first_quarter$nosleep_avg) <= .1, print("Significant: full_moon$nosleep_avg ~ first_quarter$nosleep_avg"),print())
+ifelse(t.test(full_moon$nosleep_avg ~ new_moon$nosleep_avg)<= .1, print("Significant: full_moon$nosleep_avg ~ new_moon$nosleep_avg"),print())
+ifelse(t.test(full_moon$nosleep_avg ~ last_quarter$nosleep_avg) <= .1, print("Significant: full_moon$nosleep_avg ~ last_quarter$nosleep_avg"),print())
+
+#late_night_avg
+ifelse(t.test(full_moon$late_night_avg ~ first_quarter$late_night_avg) <= .1, print("Significant: full_moon$late_night_avg ~ first_quarter$late_night_avg"),print())
+ifelse(t.test(full_moon$late_night_avg ~ new_moon$late_night_avg)<= .1, print("Significant: full_moon$late_night_avg ~ new_moon$late_night_avg"),print())
+ifelse(t.test(full_moon$late_night_avg ~ last_quarter$late_night_avg) <= .1, print("Significant: full_moon$late_night_avg ~ last_quarter$late_night_avg"),print())
 ```
 
 
