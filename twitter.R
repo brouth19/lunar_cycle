@@ -135,8 +135,8 @@ write.csv(master_table, file_name, row.names=F)
 
 if(Sys.Date()=="2017-12-02")
   {
-  setwd("/Users/chasehenley/Stats/lunar_cycle/data")
-  aggregated_table <-read_csv("tweets_2017-11-26_08-01-12.csv")
+ # setwd("/Users/chasehenley/Stats/lunar_cycle/data")
+  aggregated_table <-read_csv("data/tweets_2017-11-26_08-01-12.csv")
   aggregated_table<-aggregated_table%>%head(1)%>%select(week,phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
     summarise(week,phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)
   }
@@ -159,25 +159,25 @@ data_frame_merger<-function(csv){
   aggregated_table <-aggregated_table%>%
     head(1)%>%
     mutate(week = df$week, phase = df$phase)
-setwd("/Users/chasehenley/Stats/lunar_cycle") 
+#setwd("/Users/chasehenley/Stats/lunar_cycle") 
  return(aggregated_table)
 }
 
 if(Sys.Date()=="2017-12-02")
 {
-setwd("/Users/chasehenley/Stats/lunar_cycle/data")
-aggregated_table<-data_frame_merger("tweets_2017-11-27_08-01-14.csv")
-setwd("/Users/chasehenley/Stats/lunar_cycle/data")
-aggregated_table<-data_frame_merger("tweets_2017-11-28_08-01-19.csv")
-setwd("/Users/chasehenley/Stats/lunar_cycle/data")
-aggregated_table<-data_frame_merger("tweets_2017-11-29_08-01-15.csv")
-setwd("/Users/chasehenley/Stats/lunar_cycle/data")
-aggregated_table<-data_frame_merger("tweets_2017-11-30_08-01-15.csv")
-setwd("/Users/chasehenley/Stats/lunar_cycle/data")
-aggregated_table<-data_frame_merger("tweets_2017-12-01_08-01-14.csv")
+#setwd("/Users/chasehenley/Stats/lunar_cycle/data")
+aggregated_table<-data_frame_merger("data/tweets_2017-11-27_08-01-14.csv")
+#setwd("/Users/chasehenley/Stats/lunar_cycle/data")
+aggregated_table<-data_frame_merger("data/tweets_2017-11-28_08-01-19.csv")
+#setwd("/Users/chasehenley/Stats/lunar_cycle/data")
+aggregated_table<-data_frame_merger("data/tweets_2017-11-29_08-01-15.csv")
+#setwd("/Users/chasehenley/Stats/lunar_cycle/data")
+aggregated_table<-data_frame_merger("data/tweets_2017-11-30_08-01-15.csv")
+#setwd("/Users/chasehenley/Stats/lunar_cycle/data")
+aggregated_table<-data_frame_merger("data/tweets_2017-12-01_08-01-14.csv")
 }
 
-setwd("/Users/chasehenley/Stats/lunar_cycle/data")
+#setwd("/Users/chasehenley/Stats/lunar_cycle/data")
 aggregated_table<-data_frame_merger(file_name)
 
 #calculated mean for each count category by phase in order to compute 2 sample t test for means
