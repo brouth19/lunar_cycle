@@ -1,4 +1,3 @@
-#full moon phase is 12/3-12/10
 library(tidyverse)
 library(twitteR)
 library(ROAuth)
@@ -56,7 +55,7 @@ library(httpuv)
 
     return(hashtag_df)
   }
-  insomnia_tweets<-twitter_function('#insomnia')
+  insomnia_tweets<-twitter_function('#insomnia') #does a search for most recent tweets with this hashtag
   cantsleep_tweets<-twitter_function('#cantsleep')
   wideawake_tweets<-twitter_function('#wideawake')
   nosleep_tweets<-twitter_function('#nosleep')
@@ -197,6 +196,7 @@ full_moon <- aggregated_table %>%
             nosleep_count=sum(nosleep_count), nosleep_avg=mean(nosleep_count),
             late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
 
+#Did not have time to collect data on this phase
 last_quarter <- aggregated_table %>%
   filter(phase == 'Last Quarter') %>% 
   summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
@@ -205,6 +205,7 @@ last_quarter <- aggregated_table %>%
             nosleep_count=sum(nosleep_count), nosleep_avg=mean(nosleep_count),
             late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
 
+#Did not have time to collect data on this phase
 new_moon <- aggregated_table %>%
   filter(phase == 'New Moon') %>% 
   summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
