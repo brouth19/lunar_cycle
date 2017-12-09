@@ -126,92 +126,107 @@ write.csv(master_table, file_name, row.names=F)
 
 The result of the code chunk above is a list of CSVs, one for each night the code is run. In order to answer the question that this project hopes to answer, we need the number of tweets not for one night, but for many nights. So, the information recorded in the CSVs has to be extracted from the CSVs and aggregated so that statistical analysis is able to be done. The data_frame_merger function reads in one night's CSV, copies the different number of tweets categories for the one night, and adds those values to the aggregated_table so that there is one table that has a running sum of the number of tweets.The last line of code in this chunk automatically runs this function each night.
 ```{r}
+#initializes a data frame with columns and rows but values set to 0
+aggregated_table <-read_csv("data/tweets_2017-11-27_08-01-14.csv")
+aggregated_table[1,5:9] = 0
+aggregated_table<-aggregated_table%>%head(1)%>%select(week,phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
+    summarise(week,phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)
+
+
+#converts csv files to dataframes and then combines them
 data_frame_merger<-function(csv){
  
- df<-read_csv(csv)
+  df<-read_csv(csv)
   
- df<-df%>%head(1)%>%select(week, phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
+  df<-df%>%head(1)%>%select(week, phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
    summarise(week,phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)
 
   aggregated_table<-bind_rows(aggregated_table,df)
   
-  aggregated_table<-aggregated_table%>%
-    group_by(week)%>%
+  aggregated_table<-aggregated_table%>% select(week,phase, insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count) %>%
+    group_by(week, phase)%>%
     summarise(insomnia_count= sum(insomnia_count),cantsleep_count=sum(cantsleep_count),
               wideawake_count=sum(wideawake_count),nosleep_count=sum(nosleep_count),late_night_count=sum(late_night_count))
   
-  aggregated_table <-aggregated_table%>%
-    head(1)%>%
-    mutate(week = df$week, phase = df$phase)
-setwd("/Users/chasehenley/Stats/lunar_cycle") 
+  aggregated_table <- aggregated_table %>% filter(!is.na(phase))
+  
  return(aggregated_table)
 }
 
-setwd("/Users/chasehenley/Stats/lunar_cycle/data")
+#automated to run every night
 aggregated_table<-data_frame_merger(file_name)
 ```
 
 We next created a data for each phase so that the values for a specific phase can be accessed easily in order to perform basic statistics tests on the values. The total number of tweets and the average number of tweets were recorded.
 ```{r}
+#calculated mean for each count category by phase in order to compute 2 sample t test for means
+#grouped by week because the t.test function needs the argument to be a vector of numbers as opposed to one number
 first_quarter <- aggregated_table %>%
-              filter(phase == 'First Quarter') %>% 
-              summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
-                        cantsleep_count=sum(cantsleep_count), cantsleep_avg=mean(cantsleep_count),
-                        wideawake_count=sum(wideawake_count), wideawake_avg=mean(wideawake_count),
-                        nosleep_count=sum(nosleep_count), nosleep_avg=mean(nosleep_count),
-                        late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
+            filter(phase == 'First Quarter') %>%
+            group_by(week) %>%
+            summarise(insomnia_count= sum(insomnia_count), insomnia_avg=(insomnia_count)/7,
+            cantsleep_count=sum(cantsleep_count), cantsleep_avg=(cantsleep_count)/7,
+            wideawake_count=sum(wideawake_count), wideawake_avg=(wideawake_count)/7,
+            nosleep_count=sum(nosleep_count), nosleep_avg=(nosleep_count)/7,
+            late_night_count=sum(late_night_count), late_night_avg=(late_night_count)/7)
 
 full_moon <- aggregated_table %>%
   filter(phase == 'Full Moon') %>% 
-  summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
-            cantsleep_count=sum(cantsleep_count), cantsleep_avg=mean(cantsleep_count),
-            wideawake_count=sum(wideawake_count), wideawake_avg=mean(wideawake_count),
-            nosleep_count=sum(nosleep_count), nosleep_avg=mean(nosleep_count),
-            late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
+  group_by(week) %>%
+  summarise(insomnia_count= sum(insomnia_count), insomnia_avg=(insomnia_count)/7,
+            cantsleep_count=sum(cantsleep_count), cantsleep_avg=(cantsleep_count)/7,
+            wideawake_count=sum(wideawake_count), wideawake_avg=(wideawake_count)/7,
+            nosleep_count=sum(nosleep_count), nosleep_avg=(nosleep_count)/7,
+            late_night_count=sum(late_night_count), late_night_avg=(late_night_count)/7)
 
+#Did not have time to collect data on this phase
 last_quarter <- aggregated_table %>%
   filter(phase == 'Last Quarter') %>% 
-  summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
-            cantsleep_count=sum(cantsleep_count), cantsleep_avg=mean(cantsleep_count),
-            wideawake_count=sum(wideawake_count), wideawake_avg=mean(wideawake_count),
-            nosleep_count=sum(nosleep_count), nosleep_avg=mean(nosleep_count),
-            late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
+  group_by(week) %>%
+  summarise(insomnia_count= sum(insomnia_count), insomnia_avg= (insomnia_count)/7,
+            cantsleep_count=sum(cantsleep_count), cantsleep_avg=(cantsleep_count)/7,
+            wideawake_count=sum(wideawake_count), wideawake_avg=(wideawake_count)/7,
+            nosleep_count=sum(nosleep_count), nosleep_avg=(nosleep_count)/7,
+            late_night_count=sum(late_night_count), late_night_avg=(late_night_count)/7)
 
+#Did not have time to collect data on this phase
 new_moon <- aggregated_table %>%
   filter(phase == 'New Moon') %>% 
-  summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
-            cantsleep_count=sum(cantsleep_count), cantsleep_avg=mean(cantsleep_count),
-            wideawake_count=sum(wideawake_count), wideawake_avg=mean(wideawake_count),
-            nosleep_count=sum(nosleep_count), nosleep_avg=mean(nosleep_count),
-            late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
+  group_by(week) %>%
+  summarise(insomnia_count= sum(insomnia_count), insomnia_avg= (insomnia_count)/7,
+            cantsleep_count=sum(cantsleep_count), cantsleep_avg=(cantsleep_count)/7,
+            wideawake_count=sum(wideawake_count), wideawake_avg=(wideawake_count)/7,
+            nosleep_count=sum(nosleep_count), nosleep_avg=(nosleep_count)/7,
+            late_night_count=sum(late_night_count), late_night_avg=(late_night_count)/7)
+
 ```
 
 In order to see whether the difference in number of tweets per lunar phase is statistically significant, basic two sample t tests are performed on the averages. The result of these tests will indicate whether the lunar phase does effect the sleeping pattern of humans and ultimately answer our research question.
 ```{r}
 #insomnia_avg
-ifelse(t.test(full_moon$insomnia_avg ~ first_quarter$insomnia_avg) <= .1, print("Significant: full_moon$insomnia_avg ~ first_quarter$insomnia_avg"),print())
-ifelse(t.test(full_moon$insomnia_avg ~ new_moon$insomnia_avg) <= .1, print("Significant: full_moon$insomnia_avg ~ new_moon$insomnia_avg"),print())
-ifelse(t.test(full_moon$insomnia_avg ~ last_quarter$insomnia_avg) <= .1, print("Significant: full_moon$insomnia_avg ~ last_quarter$insomnia_avg"),print())
+t.test(full_moon$insomnia_avg,first_quarter$insomnia_avg,alternative="two.sided") 
+t.test(full_moon$insomnia_avg,new_moon$insomnia_avg,alternative="two.sided") 
+t.test(full_moon$insomnia_avg,last_quarter$insomnia_avg,alternative="two.sided") 
 
 #cantsleep_avg
-ifelse(t.test(full_moon$cantsleep_avg ~ first_quarter$cantsleep_avg) <= .1, print("Significant: full_moon$cantsleep_avg ~ first_quarter$cantsleep_avg"),print())
-ifelse(t.test(full_moon$cantsleep_avg ~ new_moon$cantsleep_avg) <= .1, print("Significant: full_moon$cantsleep_avg ~ new_moon$cantsleep_avg"),print())
-ifelse(t.test(full_moon$cantsleep_avg ~ last_quarter$cantsleep_avg) <= .1, print("Significant: full_moon$cantsleep_avg ~ last_quarter$cantsleep_avg"),print())
+t.test(full_moon$cantsleep_avg,first_quarter$cantsleep_avg,alternative="two.sided") 
+t.test(full_moon$cantsleep_avg, new_moon$cantsleep_avg,alternative="two.sided")
+t.test(full_moon$cantsleep_avg, last_quarter$cantsleep_avg,alternative="two.sided") 
 
 #wideawake_avg
-ifelse(t.test(full_moon$wideawake_avg ~ first_quarter$wideawake_avg) <= .1, print("Significant: full_moon$wideawake_avg ~ first_quarter$wideawake_avg"),print())
-ifelse(t.test(full_moon$wideawake_avg ~ new_moon$wideawake_avg)<= .1, print("Significant: full_moon$wideawake_avg ~ new_moon$wideawake_avg"),print())
-ifelse(t.test(full_moon$wideawake_avg ~ last_quarter$wideawake_avg) <= .1, print("Significant: full_moon$wideawake_avg ~ last_quarter$wideawake_avg"),print())
+t.test(full_moon$wideawake_avg, first_quarter$wideawake_avg,alternative="two.sided") 
+t.test(full_moon$wideawake_avg, new_moon$wideawake_avg,alternative="two.sided")
+t.test(full_moon$wideawake_avg, last_quarter$wideawake_avg,alternative="two.sided") 
 
 #nosleep_avg
-ifelse(t.test(full_moon$nosleep_avg ~ first_quarter$nosleep_avg) <= .1, print("Significant: full_moon$nosleep_avg ~ first_quarter$nosleep_avg"),print())
-ifelse(t.test(full_moon$nosleep_avg ~ new_moon$nosleep_avg)<= .1, print("Significant: full_moon$nosleep_avg ~ new_moon$nosleep_avg"),print())
-ifelse(t.test(full_moon$nosleep_avg ~ last_quarter$nosleep_avg) <= .1, print("Significant: full_moon$nosleep_avg ~ last_quarter$nosleep_avg"),print())
+t.test(full_moon$nosleep_avg, first_quarter$nosleep_avg,alternative="two.sided") 
+t.test(full_moon$nosleep_avg, new_moon$nosleep_avg,alternative="two.sided") 
+t.test(full_moon$nosleep_avg, last_quarter$nosleep_avg,alternative="two.sided") 
 
 #late_night_avg
-ifelse(t.test(full_moon$late_night_avg ~ first_quarter$late_night_avg) <= .1, print("Significant: full_moon$late_night_avg ~ first_quarter$late_night_avg"),print())
-ifelse(t.test(full_moon$late_night_avg ~ new_moon$late_night_avg)<= .1, print("Significant: full_moon$late_night_avg ~ new_moon$late_night_avg"),print())
-ifelse(t.test(full_moon$late_night_avg ~ last_quarter$late_night_avg) <= .1, print("Significant: full_moon$late_night_avg ~ last_quarter$late_night_avg"),print())
+t.test(full_moon$late_night_avg, first_quarter$late_night_avg,alternative="two.sided") 
+t.test(full_moon$late_night_avg, new_moon$late_night_avg,alternative="two.sided")
+t.test(full_moon$late_night_avg, last_quarter$late_night_avg,alternative="two.sided") 
 ```
 
 

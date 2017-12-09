@@ -12,19 +12,21 @@ library(rtweet)
 library(httpuv)
 
 
- #set up your own authorization to the Twitter API
- # consumer_key<-
- # consumer_secret<-
- # access_token<-
- # access_secret<-
+#set up your own authorization to the Twitter API
+# consumer_key<-
+# consumer_secret<-
+# access_token<-
+# access_secret<-
 
 
-  #setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
+#setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
 
-  #for efficiency purposes 10,000 should be the max
-  no.of.tweets <- 10000 
-  
-  twitter_function<-function(hashtag) {
+#for efficiency purposes 10,000 should be the max
+no.of.tweets <- 10000 
+
+#uses the searchTwitter function from the twitteR package to find tweets with certain hashtag from past day
+#and count such tweets
+twitter_function<-function(hashtag) {
     
   tweets_w_hashtag <- searchTwitter(hashtag, 
                                    n=no.of.tweets, 
@@ -39,22 +41,21 @@ library(httpuv)
 
     return(hashtag_df)
   }
-  insomnia_tweets<-twitter_function('#insomnia') #does a search for most recent tweets with this hashtag
-  cantsleep_tweets<-twitter_function('#cantsleep')
-  wideawake_tweets<-twitter_function('#wideawake')
-  nosleep_tweets<-twitter_function('#nosleep')
+  
+insomnia_tweets<-twitter_function('#insomnia') #does a search for most recent tweets with this hashtag
+cantsleep_tweets<-twitter_function('#cantsleep')
+wideawake_tweets<-twitter_function('#wideawake')
+nosleep_tweets<-twitter_function('#nosleep')
 
-  #live stream 60 seconds of tweets on the East Coast  
+#live stream 60 seconds of tweets on the East Coast  
 eastern_time_zone <- stream_tweets(
   c(-82.5, 25, -70, 47),
   timeout = 60)
 
-
 three_am_total<- eastern_time_zone%>%
                       mutate(week=week(Sys.Date()))%>%
                       group_by(week)%>%
-                       summarise(late_night_count=n())
-
+                      summarise(late_night_count=n())
 
 lunar_stats <- function(file_json){
     
@@ -73,12 +74,12 @@ lunar_statistics<-lunar_statistics %>% select(date=phasedata.date,
                      mutate(Date=as.Date((date),"%Y %b %d"), week = as.numeric(week(Date)))%>%
                      select(phase,Date,time,week)
 
+#adds three am tweets to the master table
 master_table<-three_am_total%>%
   full_join(lunar_statistics, by = 'week')%>%
   group_by(phase)
 
-#added three am tweets to the master table
-
+#adds hashtag data to the master table
 master_table<-master_table%>% full_join(insomnia_tweets,by='week') %>%full_join(cantsleep_tweets,by='week')%>%
   full_join(wideawake_tweets,by='week')%>%
   full_join(nosleep_tweets, by='week')%>%
@@ -102,9 +103,9 @@ aggregated_table<-aggregated_table%>%head(1)%>%select(week,phase,insomnia_count,
 #converts csv files to dataframes and then combines them
 data_frame_merger<-function(csv){
  
- df<-read_csv(csv)
+  df<-read_csv(csv)
   
- df<-df%>%head(1)%>%select(week, phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
+  df<-df%>%head(1)%>%select(week, phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
    summarise(week,phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)
 
   aggregated_table<-bind_rows(aggregated_table,df)
@@ -115,14 +116,16 @@ data_frame_merger<-function(csv){
               wideawake_count=sum(wideawake_count),nosleep_count=sum(nosleep_count),late_night_count=sum(late_night_count))
   
   aggregated_table <- aggregated_table %>% filter(!is.na(phase))
+  
  return(aggregated_table)
 }
 
+#automated to run every night
 aggregated_table<-data_frame_merger(file_name)
 
 
-
 #calculated mean for each count category by phase in order to compute 2 sample t test for means
+#grouped by week because the t.test function needs the argument to be a vector of numbers as opposed to one number
 first_quarter <- aggregated_table %>%
             filter(phase == 'First Quarter') %>%
             group_by(week) %>%
@@ -132,7 +135,6 @@ first_quarter <- aggregated_table %>%
             nosleep_count=sum(nosleep_count), nosleep_avg=(nosleep_count)/7,
             late_night_count=sum(late_night_count), late_night_avg=(late_night_count)/7)
 
-  
 full_moon <- aggregated_table %>%
   filter(phase == 'Full Moon') %>% 
   group_by(week) %>%
@@ -187,6 +189,7 @@ t.test(full_moon$late_night_avg, first_quarter$late_night_avg,alternative="two.s
 t.test(full_moon$late_night_avg, new_moon$late_night_avg,alternative="two.sided")
 t.test(full_moon$late_night_avg, last_quarter$late_night_avg,alternative="two.sided") 
 
+#groups all data into one place
 visual_df<-aggregated_table %>%
   group_by(phase) %>% 
   summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
