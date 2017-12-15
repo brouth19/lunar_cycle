@@ -36,7 +36,7 @@ library(httpuv)
 
 In order to access Twitter data from the API, one must request permission and set up authorization. Hence, the purpose of the code chunk below.
 ```{r}
-setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
+#setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
 ```
 
 Now since the access to the twitter data was granted, we need to search for the specific data that we want in order to answer our problem. The twitter_function function created in this code chunk utilizes the twitteR package searchTwitter function to locate at most 10,000 tweets from the past day that contain a certain string in the tweet. The function then counts the number of tweets and returns that value in a dataframe. We decided to run the twitter_function to find tweets with #insomnia, #cantsleep, #wideawake, or #nosleep contained in the tweet to figure out when Twitter users aren't able to sleep well. 
