@@ -18,7 +18,7 @@ Data: Ultimately, the data being looked at has eight variables: week, phase, dat
 Overview of the Code: 
 
 The packages necessary in order to run the code below. 
-```{r}
+``` 
 library(tidyverse)
 library(twitteR)
 library(ROAuth)
@@ -35,12 +35,16 @@ library(httpuv)
 
 
 In order to access Twitter data from the API, one must request permission and set up authorization. Hence, the purpose of the code chunk below.
-```{r}
-#setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
+
+```
+setup_twitter_oauth(consumer_key, 
+                    consumer_secret, 
+                    access_token, 
+                    access_secret)
 ```
 
 Now since the access to the twitter data was granted, we need to search for the specific data that we want in order to answer our problem. The twitter_function function created in this code chunk utilizes the twitteR package searchTwitter function to locate at most 10,000 tweets from the past day that contain a certain string in the tweet. The function then counts the number of tweets and returns that value in a dataframe. We decided to run the twitter_function to find tweets with #insomnia, #cantsleep, #wideawake, or #nosleep contained in the tweet to figure out when Twitter users aren't able to sleep well. 
-```{r}
+``` 
 no.of.tweets <- 10000 
   
 twitter_function<-function(hashtag) {
@@ -66,7 +70,7 @@ nosleep_tweets<-twitter_function('#nosleep')
 ```
 
 Another method used to determine when people are not able to sleep is to see how many people are tweeting at 3:00 am in total. The code chunk below utilizes the rtweet package's stream_tweets function in order to stream all live tweets for 60 seconds. The number of tweets tweeted during this 60 second span at 3:00 am only on the East Coast is then counted and this value is stored in the three_am_total data frame.
-```{r}
+``` 
 eastern_time_zone <- stream_tweets(
   c(-82.5, 25, -70, 47),
   timeout = 60)
@@ -79,7 +83,7 @@ three_am_total<- eastern_time_zone%>%
 ```
 
 Here we retrieve the data regarding the lunar cycle by utilizing an API and converting the JSON file to a dataframe.
-```{r}
+``` 
 lunar_stats <- function(file_json){
     
     lunar_data<-fromJSON(file_json)
@@ -93,24 +97,37 @@ lunar_statistics<-lunar_stats('http://api.usno.navy.mil/moon/phase?year=2017')
 ```
 
 Now that all of the data is collected, it needs to be combined into one master_table so that all of the information can be accessed easily in one place.
-```{r}
+``` 
 master_table<-three_am_total%>%
   full_join(lunar_statistics, by = 'week')%>%
   group_by(phase)
 
 #added three am tweets to the master table
 
-master_table<-master_table%>% full_join(insomnia_tweets,by='week') %>%full_join(cantsleep_tweets,by='week')%>%
-  full_join(wideawake_tweets,by='week')%>%
-  full_join(nosleep_tweets, by='week')%>%
-  mutate(insomnia_count = count.x, cantsleep_count = count.y, wideawake_count = count.x.x, nosleep_count = count.y.y)%>%
-  select(week,phase,Date, time, insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
-  group_by(week)
+master_table<-master_table%>% 
+              full_join(insomnia_tweets,by='week')%>%
+              full_join(cantsleep_tweets,by='week')%>%
+              full_join(wideawake_tweets,by='week')%>%
+              full_join(nosleep_tweets, by='week')%>%
+              mutate(insomnia_count = count.x, 
+                     cantsleep_count = count.y, 
+                     wideawake_count = count.x.x, 
+                     nosleep_count = count.y.y)%>%
+             select(week,
+                   phase,
+                   Date,
+                   time, 
+                   insomnia_count,
+                   cantsleep_count,
+                   wideawake_count,
+                   nosleep_count,
+                   late_night_count)%>%
+              group_by(week)
 ```
 
 
 Each night the code automatically runs at 3:00 am and executes the functions described above. The results from these executions needs to be stored, but since it is running automatically we are not able to manually name and save the file each time it runs. That is why the chunk below automatically writes the data results to a csv each night and saves the file as the date on which it was run. 
-```{r}
+``` 
 system('mkdir -p data') # create directory if not exists
 date_time <- gsub(':', '-', Sys.time()) # clean up the datetime
 date_time <- gsub(' ', '_', date_time)
@@ -119,12 +136,26 @@ write.csv(master_table, file_name, row.names=F)
 ```
 
 The result of the code chunk above is a list of CSVs, one for each night the code is run. In order to answer the question that this project hopes to answer, we need the number of tweets not for one night, but for many nights. So, the information recorded in the CSVs has to be extracted from the CSVs and aggregated so that statistical analysis is able to be done. The data_frame_merger function reads in one night's CSV, copies the different number of tweets categories for the one night, and adds those values to the aggregated_table so that there is one table that has a running sum of the number of tweets.The last line of code in this chunk automatically runs this function each night.
-```{r}
+``` 
 #initializes a data frame with columns and rows but values set to 0
 aggregated_table <-read_csv("data/tweets_2017-11-27_08-01-14.csv")
 aggregated_table[1,5:9] = 0
-aggregated_table<-aggregated_table%>%head(1)%>%select(week,phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
-    summarise(week,phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)
+aggregated_table<-aggregated_table%>%
+                  head(1)%>%
+                  select(week,
+                         phase,
+                        insomnia_count,
+                        cantsleep_count,
+                        wideawake_count,
+                        nosleep_count,
+                        late_night_count)%>%
+                  summarise(week,
+                            phase,
+                            insomnia_count,
+                            cantsleep_count,
+                            wideawake_count,
+                            nosleep_count,
+                            late_night_count)
 
 
 #converts csv files to dataframes and then combines them
@@ -132,17 +163,41 @@ data_frame_merger<-function(csv){
  
   df<-read_csv(csv)
   
-  df<-df%>%head(1)%>%select(week, phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)%>%
-   summarise(week,phase,insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count)
+  df<-df%>%
+      head(1)%>%
+      select(week, 
+             phase,
+             insomnia_count,
+             cantsleep_count,
+             wideawake_count,
+             nosleep_count,
+             late_night_count)%>%
+      summarise(week,
+                phase,
+                insomnia_count,
+                cantsleep_count,
+                wideawake_count,
+                nosleep_count,
+                late_night_count)
 
   aggregated_table<-bind_rows(aggregated_table,df)
   
-  aggregated_table<-aggregated_table%>% select(week,phase, insomnia_count,cantsleep_count,wideawake_count,nosleep_count,late_night_count) %>%
-    group_by(week, phase)%>%
-    summarise(insomnia_count= sum(insomnia_count),cantsleep_count=sum(cantsleep_count),
-              wideawake_count=sum(wideawake_count),nosleep_count=sum(nosleep_count),late_night_count=sum(late_night_count))
+  aggregated_table<-aggregated_table%>% 
+                    select(week,
+                           phase,
+                          insomnia_count,
+                          cantsleep_count,
+                          wideawake_count,
+                          nosleep_count,
+                          late_night_count) %>%
+                    group_by(week, phase)%>%
+                    summarise(insomnia_count= sum(insomnia_count),
+                              cantsleep_count=sum(cantsleep_count),
+                              wideawake_count=sum(wideawake_count),
+                              nosleep_count=sum(nosleep_count),
+                              late_night_count=sum(late_night_count))
   
-  aggregated_table <- aggregated_table %>% filter(!is.na(phase))
+  aggregated_table <- aggregated_table%>% filter(!is.na(phase))
   
  return(aggregated_table)
 }
@@ -152,51 +207,71 @@ aggregated_table<-data_frame_merger(file_name)
 ```
 
 We next created a data frame for each phase so that the values for a specific phase can be accessed easily in order to perform basic statistics tests on the values. The total number of tweets and the average number of tweets were recorded.
-```{r}
+``` 
 #calculated mean for each count category by phase in order to compute 2 sample t test for means
 #grouped by week because the t.test function needs the argument to be a vector of numbers as opposed to one number
 first_quarter <- aggregated_table %>%
-            filter(phase == 'First Quarter') %>%
-            group_by(week) %>%
-            summarise(insomnia_count= sum(insomnia_count), insomnia_avg=(insomnia_count)/7,
-            cantsleep_count=sum(cantsleep_count), cantsleep_avg=(cantsleep_count)/7,
-            wideawake_count=sum(wideawake_count), wideawake_avg=(wideawake_count)/7,
-            nosleep_count=sum(nosleep_count), nosleep_avg=(nosleep_count)/7,
-            late_night_count=sum(late_night_count), late_night_avg=(late_night_count)/7)
+                 filter(phase == 'First Quarter') %>%
+                 group_by(week) %>%
+                 summarise(insomnia_count= sum(insomnia_count), 
+                      insomnia_avg=(insomnia_count)/7,
+                      cantsleep_count=sum(cantsleep_count), 
+                      cantsleep_avg=(cantsleep_count)/7,
+                      wideawake_count=sum(wideawake_count), 
+                      wideawake_avg=(wideawake_count)/7,
+                      nosleep_count=sum(nosleep_count), 
+                      nosleep_avg=(nosleep_count)/7,
+                      late_night_count=sum(late_night_count), 
+                      late_night_avg=(late_night_count)/7)
 
 full_moon <- aggregated_table %>%
-  filter(phase == 'Full Moon') %>% 
-  group_by(week) %>%
-  summarise(insomnia_count= sum(insomnia_count), insomnia_avg=(insomnia_count)/7,
-            cantsleep_count=sum(cantsleep_count), cantsleep_avg=(cantsleep_count)/7,
-            wideawake_count=sum(wideawake_count), wideawake_avg=(wideawake_count)/7,
-            nosleep_count=sum(nosleep_count), nosleep_avg=(nosleep_count)/7,
-            late_night_count=sum(late_night_count), late_night_avg=(late_night_count)/7)
+             filter(phase == 'Full Moon') %>% 
+             group_by(week) %>%
+             summarise(insomnia_count= sum(insomnia_count), 
+                       insomnia_avg=(insomnia_count)/7,
+                       cantsleep_count=sum(cantsleep_count), 
+                       cantsleep_avg=(cantsleep_count)/7,
+                       wideawake_count=sum(wideawake_count), 
+                       wideawake_avg=(wideawake_count)/7,
+                       nosleep_count=sum(nosleep_count), 
+                       nosleep_avg=(nosleep_count)/7,
+                       late_night_count=sum(late_night_count), 
+                       late_night_avg=(late_night_count)/7)
 
 #Did not have time to collect data on this phase
 last_quarter <- aggregated_table %>%
-  filter(phase == 'Last Quarter') %>% 
-  group_by(week) %>%
-  summarise(insomnia_count= sum(insomnia_count), insomnia_avg= (insomnia_count)/7,
-            cantsleep_count=sum(cantsleep_count), cantsleep_avg=(cantsleep_count)/7,
-            wideawake_count=sum(wideawake_count), wideawake_avg=(wideawake_count)/7,
-            nosleep_count=sum(nosleep_count), nosleep_avg=(nosleep_count)/7,
-            late_night_count=sum(late_night_count), late_night_avg=(late_night_count)/7)
+                filter(phase == 'Last Quarter') %>% 
+                group_by(week) %>%
+                summarise(insomnia_count= sum(insomnia_count), 
+                          insomnia_avg= (insomnia_count)/7,
+                          cantsleep_count=sum(cantsleep_count), 
+                          cantsleep_avg=(cantsleep_count)/7,
+                          wideawake_count=sum(wideawake_count),
+                          wideawake_avg=(wideawake_count)/7,
+                          nosleep_count=sum(nosleep_count), 
+                          nosleep_avg=(nosleep_count)/7,
+                          late_night_count=sum(late_night_count), 
+                          late_night_avg=(late_night_count)/7)
 
 #Did not have time to collect data on this phase
 new_moon <- aggregated_table %>%
-  filter(phase == 'New Moon') %>% 
-  group_by(week) %>%
-  summarise(insomnia_count= sum(insomnia_count), insomnia_avg= (insomnia_count)/7,
-            cantsleep_count=sum(cantsleep_count), cantsleep_avg=(cantsleep_count)/7,
-            wideawake_count=sum(wideawake_count), wideawake_avg=(wideawake_count)/7,
-            nosleep_count=sum(nosleep_count), nosleep_avg=(nosleep_count)/7,
-            late_night_count=sum(late_night_count), late_night_avg=(late_night_count)/7)
+            filter(phase == 'New Moon') %>% 
+            group_by(week) %>%
+            summarise(insomnia_count= sum(insomnia_count), 
+                      insomnia_avg= (insomnia_count)/7,
+                      cantsleep_count=sum(cantsleep_count), 
+                      cantsleep_avg=(cantsleep_count)/7,
+                      wideawake_count=sum(wideawake_count),
+                      wideawake_avg=(wideawake_count)/7,
+                      nosleep_count=sum(nosleep_count),
+                      nosleep_avg=(nosleep_count)/7,
+                      late_night_count=sum(late_night_count), 
+                      late_night_avg=(late_night_count)/7)
 
 ```
 
 In order to see whether the difference in number of tweets per lunar phase is statistically significant, basic two sample t tests are performed on the averages. The result of these tests will indicate whether the lunar phase does affect the sleeping pattern of humans and ultimately answer our research question.
-```{r}
+``` 
 #insomnia_avg
 t.test(full_moon$insomnia_avg,first_quarter$insomnia_avg,alternative="two.sided") 
 t.test(full_moon$insomnia_avg,new_moon$insomnia_avg,alternative="two.sided") 
@@ -225,21 +300,46 @@ t.test(full_moon$late_night_avg, last_quarter$late_night_avg,alternative="two.si
 
 
 This code chunk visualizes all of the data resulting from the collection and calculations above. Bar plots are used to visualize the difference in average number of tweets per night during a certain lunar phase. 
-```{r}
+``` 
 visual_df<-aggregated_table %>%
   group_by(phase) %>% 
-  summarise(insomnia_count= sum(insomnia_count), insomnia_avg= mean(insomnia_count),
-            cantsleep_count=sum(cantsleep_count), cantsleep_avg=mean(cantsleep_count),
-            wideawake_count=sum(wideawake_count), wideawake_avg=mean(wideawake_count),
-            nosleep_count=sum(nosleep_count), nosleep_avg=mean(nosleep_count),
-            late_night_count=sum(late_night_count), late_night_avg=mean(late_night_count))
+  summarise(insomnia_count= sum(insomnia_count),
+            insomnia_avg= mean(insomnia_count),
+            cantsleep_count=sum(cantsleep_count),
+            cantsleep_avg=mean(cantsleep_count),
+            wideawake_count=sum(wideawake_count), 
+            wideawake_avg=mean(wideawake_count),
+            nosleep_count=sum(nosleep_count), 
+            nosleep_avg=mean(nosleep_count),
+            late_night_count=sum(late_night_count), 
+            late_night_avg=mean(late_night_count))
 
 #plots
-visual_df%>%ggplot(aes(x=phase,y=insomnia_avg))+geom_bar(stat="identity")+ggtitle("Average Number of Tweets per Night with #insomnia")+xlab("Phase")+ylab("Average Number of Tweets")
-visual_df%>%ggplot(aes(x=phase,y=cantsleep_avg))+geom_bar(stat="identity")+ggtitle("Average Number of Tweets per Night with #cantsleep")+xlab("Phase")+ylab("Average Number of Tweets")
-visual_df%>%ggplot(aes(x=phase,y=wideawake_avg))+geom_bar(stat="identity")+ggtitle("Average Number of Tweets per Night with #wideawake")+xlab("Phase")+ylab("Average Number of Tweets")
-visual_df%>%ggplot(aes(x=phase,y=nosleep_avg))+geom_bar(stat="identity")+ggtitle("Average Number of Tweets per Night with #nosleep")+xlab("Phase")+ylab("Average Number of Tweets")
-visual_df%>%ggplot(aes(x=phase,y=late_night_avg))+geom_bar(stat="identity")+ggtitle("Average Number of Tweets per Night at 3 am")+xlab("Phase")+ylab("Average Number of Tweets")
+visual_df%>%ggplot(aes(x=phase,y=insomnia_avg))+
+            geom_bar(stat="identity")+
+            ggtitle("Average Number of Tweets per Night with #insomnia")+
+            xlab("Phase")+
+            ylab("Average Number of Tweets")
+visual_df%>%ggplot(aes(x=phase,y=cantsleep_avg))+
+            geom_bar(stat="identity")+
+            ggtitle("Average Number of Tweets per Night with #cantsleep")+
+            xlab("Phase")+
+            ylab("Average Number of Tweets")
+visual_df%>%ggplot(aes(x=phase,y=wideawake_avg))+
+            geom_bar(stat="identity")+
+            ggtitle("Average Number of Tweets per Night with #wideawake")+
+            xlab("Phase")+
+            ylab("Average Number of Tweets")
+visual_df%>%ggplot(aes(x=phase,y=nosleep_avg))+
+            geom_bar(stat="identity")+
+            ggtitle("Average Number of Tweets per Night with #nosleep")+
+            xlab("Phase")+
+            ylab("Average Number of Tweets")
+visual_df%>%ggplot(aes(x=phase,y=late_night_avg))+
+            geom_bar(stat="identity")+
+            ggtitle("Average Number of Tweets per Night at 3 am")+
+            xlab("Phase")+
+            ylab("Average Number of Tweets")
 ```
 
 
