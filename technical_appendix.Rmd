@@ -342,6 +342,10 @@ visual_df%>%ggplot(aes(x=phase,y=late_night_avg))+
             ylab("Average Number of Tweets")
 ```
 
+Click the link below to see a limited example of what the graphics would look like. Granted, this graphic does not include all of the data necessary. 
+
+[Graphic Example](graphic_example.png)
+
 
 Results: There were no statistically significant results due to lack of observations. 
 
